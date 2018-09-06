@@ -2,11 +2,12 @@
 #ifndef CYCLIB1
 #define CYCLIB1
 
-typedef unsigned char BYTE;
-typedef unsigned char UCHAR;
-typedef unsigned int  UINT;
-typedef unsigned short USHORT;
-typedef unsigned short WORD;
+typedef unsigned char BYTE;			// 1个字节
+typedef unsigned char UCHAR;		// 1个字节
+typedef unsigned int  UINT;			// 4个字节
+typedef unsigned short USHORT;		// 2个字节
+typedef unsigned short UWORD;		// 2个字节
+typedef unsigned long UDWORD;		// 4个字节
 
 #define __RGB16BIT555(r,g,b) ((b&31)+((g&31)<<5)+((r&31)<<10))
 #define __RGB16BIT565(r,g,b) ((b&31)+((g&63)<<5)+((r&31)<<11))

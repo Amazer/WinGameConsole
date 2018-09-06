@@ -5,8 +5,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <ddraw.h>
-#include "cyclib1.h"
+
 #include <math.h>
+
+#include "cyclib1.h"
+#include "cycTypeLib.h"
+#include "cycmath2dLib.h"
 
 #define WINCLASSNAME "WINCLASS1"
 #define WNDNAME "EngineEntry"
@@ -1879,7 +1883,7 @@ int Clip_Line(RECT clipRect, int &x0, int &y0, int &x1, int &y1)
 				x0 = clipRect.right;
 			}
 		}
-		if(point1_code!=CLIP_CODE_C)		// point1在外面
+		if (point1_code != CLIP_CODE_C)		// point1在外面
 		{
 			//			outpoint_index = 1;
 			//			inter_y = y1;
@@ -2028,7 +2032,7 @@ int Clip_Line(RECT clipRect, int &x0, int &y0, int &x1, int &y1)
 		|| y0<clipRect.top || y0>clipRect.bottom
 		|| y1<clipRect.top || y1>clipRect.bottom)
 	{
-//		printf("clip (%d,%d),(%d,%d)", x0, y0, x1, y1);
+		//		printf("clip (%d,%d),(%d,%d)", x0, y0, x1, y1);
 		return 0;
 	}
 	return 1;
@@ -2074,7 +2078,7 @@ void Test_DrawLine_Main()
 
 void Test_DrawClipLine_Main()
 {
-//	DDraw_Fill_Surface(lpddsprimary, 0);
+	//	DDraw_Fill_Surface(lpddsprimary, 255);
 	DDRAW_INIT_STRUCT(ddsd);
 	lpddsprimary->Lock(NULL, &ddsd, DDLOCK_WAIT | DDLOCK_SURFACEMEMORYPTR, NULL);
 	int x0 = rand() % SCREEN_WIDTH;
@@ -2083,10 +2087,84 @@ void Test_DrawClipLine_Main()
 	int x1 = rand() % SCREEN_WIDTH;
 	int y1 = rand() % SCREEN_HEIGHT;
 	RECT clip = { 50,50,400,400 };
-	Draw_Clip_Line8(clip, x0, y0, x1, y1, rand()%255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+	Draw_Clip_Line8(clip, x0, y0, x1, y1, rand() % 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
 	lpddsprimary->Unlock(NULL);
 
 }
+#pragma endregion
+
+#pragma region chapter8,demo_8_3, 多边形的绘制
+const int num_poly = 64;
+POLYGON2D airships[num_poly];
+RECT default_clip_rect = { 0,0,SCREEN_WIDTH - 1,SCREEN_HEIGHT - 1 };
+//VERTEX2DI ship_vertexs[11] = { -17,0,-25,-10,-2,-10,-2,-30,2,-30,2,-28,20,-20,2,-12,2,-10,25,-10,17,0 };
+
+int Draw_Polygon2D(POLYGON2D_PTR poly, UCHAR *vbuffer, int lpitch)
+{
+	if (poly->state)
+	{
+		int i = 0;
+		for (; i < poly->num_verts - 1; ++i)
+		{
+			Draw_Clip_Line8(default_clip_rect, poly->vlist[i].x + poly->x0, poly->vlist[i].y + poly->y0, poly->vlist[i + 1].x + poly->x0, poly->vlist[i + 1].y + poly->y0, poly->color, vbuffer, lpitch);
+//			Draw_Line8(poly->vlist[i].x + poly->x0, poly->vlist[i].y + poly->y0, poly->vlist[i + 1].x + poly->x0, poly->vlist[i + 1].y + poly->y0, poly->color, vbuffer, lpitch);
+		}
+		Draw_Clip_Line8(default_clip_rect, poly->vlist[i].x + poly->x0, poly->vlist[i].y + poly->y0, poly->vlist[0].x + poly->x0, poly->vlist[0].y + poly->y0, poly->color, vbuffer, lpitch);
+//		Draw_Line8(poly->vlist[i].x + poly->x0, poly->vlist[i].y + poly->y0, poly->vlist[0].x + poly->x0, poly->vlist[0].y + poly->y0, poly->color, vbuffer, lpitch);
+		return 1;
+	}
+	return 0;
+}
+void Test_Draw_Polygon_Init()
+{
+	VERTEX2DF ship_vertexs[11] = { -17,0,-25,-10,-2,-10,-2,-30,2,-30,2,-28,20,-20,2,-12,2,-10,25,-10,17,0 };
+	for (int i = 0; i < num_poly; ++i)
+	{
+		airships[i].color = rand() % 255;
+		airships[i].num_verts = 11;
+		airships[i].state = 0;
+		airships[i].x0 = rand() % SCREEN_WIDTH;
+		airships[i].y0 = rand() % SCREEN_HEIGHT;
+		airships[i].xv = 1 + rand() % 6;
+		airships[i].yv = 0;
+		airships[i].vlist = new VERTEX2DF[airships[i].num_verts];
+		for (int k = 0; k < airships[i].num_verts; ++k)
+		{
+			airships[i].vlist[k] = ship_vertexs[k];
+		}
+	}
+
+}
+// 出现一个转成小点的问题。原因是，顶点用int表示，由于float->int的误差，导致最后顶点都变成了0：。
+void Test_Draw_Polygon2D_Main()
+{
+	DDraw_Fill_Surface(lpddsback, 0);
+
+	DDRAW_INIT_STRUCT(ddsd);
+
+	lpddsback->Lock(NULL, &ddsd, DDLOCK_SURFACEMEMORYPTR | DDLOCK_WAIT, NULL);
+
+	for (int i = 0; i < num_poly; ++i)
+	{
+		airships[i].state = 1;
+		Draw_Polygon2D(&airships[i], (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+//		Rotate_Polygon2d(&airships[i], 5);
+//		Rotate_Polygon2d_Fast(&airships[i], 5);
+		Translate_Polygon2d(&airships[i], airships[i].xv, airships[i].yv);
+//		Scale_Polygon2d(&airships[i], 1.1f, 1.1f);
+		if (airships[i].x0 > SCREEN_WIDTH)
+		{
+			airships[i].x0 = 0;
+		}
+
+	}
+
+	lpddsback->Unlock(NULL);
+
+	while (lpddsprimary->Flip(NULL, DDFLIP_WAIT));
+
+}
+
 #pragma endregion
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
@@ -2103,6 +2181,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	wclass.lpszMenuName = NULL;
 	wclass.lpszClassName = WINCLASSNAME;
 	wclass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+	ShowCursor(false);
 
 	RegisterClassEx(&wclass);
 	HWND hwnd;
@@ -2761,58 +2840,61 @@ void TestDraw(HWND hwnd)
 }
 void On_GameInit()
 {
-	Test_DrawLine_Init();
-	//	Test_dd_gdi_Main();
-	//	Test_win_Init();
+	Init_LookTable();
+	Test_Draw_Polygon_Init();
+	//	Test_DrawLine_Init();
+		//	Test_dd_gdi_Main();
+		//	Test_win_Init();
 		//		InitAttachClip();
 
-				//	if (!double_buffer)
-				//	{
-				//		double_buffer = new UCHAR[SCREEN_WIDTH*SCREEN_HEIGHT];
-				//	}
+		//	if (!double_buffer)
+		//	{
+		//		double_buffer = new UCHAR[SCREEN_WIDTH*SCREEN_HEIGHT];
+		//	}
 
-		//	TestInitBackSurfaceColor16BIT();
+			//	TestInitBackSurfaceColor16BIT();
 
-		//		TestInitHappyFace();
-	//	TestBitMapLoad();
+			//		TestInitHappyFace();
+		//	TestBitMapLoad();
 
-	//	Test_Sprite_Anim_Init();
-	//	Test_light_256_Init();
-	//	Test_dd_gdi_Init();
+		//	Test_Sprite_Anim_Init();
+		//	Test_light_256_Init();
+		//	Test_dd_gdi_Init();
 }
 void On_GameMain()
 {
-	Test_DrawClipLine_Main();
-	//		Test_DrawLine_Main();
-			//	Test_win_Main();
-			//	Test_dd_gdi_Main();
-			//	Test_light_256_Main();
-				//		Test_Sprite_Anim_Main();
-						//	switch (SCREEN_BPP)
-						//	{
-						//	case 8:
-				//				TestBitmap8Main();
-						//		break;
-						//	case 16:
-						//		TestBitMap16Main();
-						//		break;
-						//	case 24:	// 系统不支持24位。会补一个alpha，成32位。
-						////		TestBitMap24Main();
-						//		break;
-						//	case 32:
-						//		TestBitMap32Main();
-						//		break;
-						//	}
-							//	TestBitmapMain();
-								//	TestClipperHappyFace();
-									//	TestGameMainHappyFace();
-						//					TestBlitCopyOnPrimarySurface();
-							//				TestBlitCopy();
-									//		TestBlitFast();
-						//						TestBlit();
-									//			TestBackBuffer();
-											//	TestDoubleBuffering();
-						//						TestDrawPixels();
+	Test_Draw_Polygon2D_Main();
+	//	Test_DrawClipLine_Main();
+		//		Test_DrawLine_Main();
+				//	Test_win_Main();
+				//	Test_dd_gdi_Main();
+				//	Test_light_256_Main();
+					//		Test_Sprite_Anim_Main();
+							//	switch (SCREEN_BPP)
+							//	{
+							//	case 8:
+					//				TestBitmap8Main();
+							//		break;
+							//	case 16:
+							//		TestBitMap16Main();
+							//		break;
+							//	case 24:	// 系统不支持24位。会补一个alpha，成32位。
+							////		TestBitMap24Main();
+							//		break;
+							//	case 32:
+							//		TestBitMap32Main();
+							//		break;
+							//	}
+								//	TestBitmapMain();
+									//	TestClipperHappyFace();
+										//	TestGameMainHappyFace();
+							//					TestBlitCopyOnPrimarySurface();
+								//				TestBlitCopy();
+										//		TestBlitFast();
+							//						TestBlit();
+										//			TestBackBuffer();
+												//	TestDoubleBuffering();
+							//						TestDrawPixels();
 
 }
 
