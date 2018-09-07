@@ -66,6 +66,12 @@ ALIEN_OBJ             aliens[3];				// 3 aliens, one on each level
 int gwidth = -1;
 int gheight = -1;
 
+// mouse
+
+POINT  mousePoint;
+POINT  lastMousePoint;
+bool mouseDown = false;
+
 // 函数声明
 LRESULT CALLBACK WinProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
@@ -2070,7 +2076,7 @@ void Test_DrawLine_Main()
 	else
 	{
 
-		Draw_Line32(x0, y0, x1, y1, RandomRGBA32(), (UINT *)ddsd.lpSurface, ddsd.lPitch);
+	Draw_Line32(x0, y0, x1, y1, RandomRGBA32(), (UINT *)ddsd.lpSurface, ddsd.lPitch);
 	}
 	lpddsprimary->Unlock(NULL);
 
@@ -2107,10 +2113,10 @@ int Draw_Polygon2D(POLYGON2D_PTR poly, UCHAR *vbuffer, int lpitch)
 		for (; i < poly->num_verts - 1; ++i)
 		{
 			Draw_Clip_Line8(default_clip_rect, poly->vlist[i].x + poly->x0, poly->vlist[i].y + poly->y0, poly->vlist[i + 1].x + poly->x0, poly->vlist[i + 1].y + poly->y0, poly->color, vbuffer, lpitch);
-//			Draw_Line8(poly->vlist[i].x + poly->x0, poly->vlist[i].y + poly->y0, poly->vlist[i + 1].x + poly->x0, poly->vlist[i + 1].y + poly->y0, poly->color, vbuffer, lpitch);
+			//			Draw_Line8(poly->vlist[i].x + poly->x0, poly->vlist[i].y + poly->y0, poly->vlist[i + 1].x + poly->x0, poly->vlist[i + 1].y + poly->y0, poly->color, vbuffer, lpitch);
 		}
 		Draw_Clip_Line8(default_clip_rect, poly->vlist[i].x + poly->x0, poly->vlist[i].y + poly->y0, poly->vlist[0].x + poly->x0, poly->vlist[0].y + poly->y0, poly->color, vbuffer, lpitch);
-//		Draw_Line8(poly->vlist[i].x + poly->x0, poly->vlist[i].y + poly->y0, poly->vlist[0].x + poly->x0, poly->vlist[0].y + poly->y0, poly->color, vbuffer, lpitch);
+		//		Draw_Line8(poly->vlist[i].x + poly->x0, poly->vlist[i].y + poly->y0, poly->vlist[0].x + poly->x0, poly->vlist[0].y + poly->y0, poly->color, vbuffer, lpitch);
 		return 1;
 	}
 	return 0;
@@ -2135,10 +2141,20 @@ void Test_Draw_Polygon_Init()
 	}
 
 }
+
+void Test_Draw_Mouse_Line(UCHAR * buffer,int lpitch)
+{
+	if (mouseDown)
+	{
+		Draw_Clip_Line8(default_clip_rect, lastMousePoint.x, lastMousePoint.y, mousePoint.x, mousePoint.y, rand() % 256, buffer, lpitch);
+//		Plot8(mousePoint.x, mousePoint.y, rand() % 256, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+	}
+}
+
 // 出现一个转成小点的问题。原因是，顶点用int表示，由于float->int的误差，导致最后顶点都变成了0：。
 void Test_Draw_Polygon2D_Main()
 {
-	DDraw_Fill_Surface(lpddsback, 0);
+//	DDraw_Fill_Surface(lpddsback, 0);
 
 	DDRAW_INIT_STRUCT(ddsd);
 
@@ -2148,20 +2164,64 @@ void Test_Draw_Polygon2D_Main()
 	{
 		airships[i].state = 1;
 		Draw_Polygon2D(&airships[i], (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
-//		Rotate_Polygon2d(&airships[i], 5);
-//		Rotate_Polygon2d_Fast(&airships[i], 5);
+		//		Rotate_Polygon2d(&airships[i], 5);
+		//		Rotate_Polygon2d_Fast(&airships[i], 5);
 		Translate_Polygon2d(&airships[i], airships[i].xv, airships[i].yv);
-//		Scale_Polygon2d(&airships[i], 1.1f, 1.1f);
+		//		Scale_Polygon2d(&airships[i], 1.1f, 1.1f);
 		if (airships[i].x0 > SCREEN_WIDTH)
 		{
 			airships[i].x0 = 0;
 		}
 
 	}
+//	Test_Draw_Mouse_Line((UCHAR*)ddsd.lpSurface, ddsd.lPitch);
 
 	lpddsback->Unlock(NULL);
 
 	while (lpddsprimary->Flip(NULL, DDFLIP_WAIT));
+
+}
+void Test_Draw_Mouse_Pixel_Main()
+{
+	if (KEYDOWN(VK_SPACE))
+	{
+		DDraw_Fill_Surface(lpddsback, 0);
+	}
+	DDRAW_INIT_STRUCT(ddsd);
+	lpddsback->Lock(NULL, &ddsd, DDLOCK_WAIT | DDLOCK_SURFACEMEMORYPTR, NULL);
+
+	if (mouseDown)
+	{
+		Draw_Line8(lastMousePoint.x, lastMousePoint.y, mousePoint.x, mousePoint.y, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+//		Draw_Clip_Line8(default_clip_rect, lastMousePoint.x, lastMousePoint.y, mousePoint.x, mousePoint.y, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+//		Plot8(mousePoint.x, mousePoint.y, rand() % 256, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+	}
+
+	lpddsback->Unlock(NULL);
+
+	while (lpddsprimary->Flip(NULL, DDFLIP_WAIT));
+
+}
+
+void Test_Draw_Mouse_Pixel_Blt_Main()
+{
+	if (KEYDOWN(VK_SPACE))
+	{
+		DDraw_Fill_Surface(lpddsback, 0);
+	}
+	DDRAW_INIT_STRUCT(ddsd);
+	lpddsback->Lock(NULL, &ddsd, DDLOCK_WAIT | DDLOCK_SURFACEMEMORYPTR, NULL);
+
+	if (mouseDown)
+	{
+		Draw_Line8(lastMousePoint.x, lastMousePoint.y, mousePoint.x, mousePoint.y, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+//		Draw_Clip_Line8(default_clip_rect, lastMousePoint.x, lastMousePoint.y, mousePoint.x, mousePoint.y, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+//		Plot8(mousePoint.x, mousePoint.y, rand() % 256, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+	}
+
+	lpddsback->Unlock(NULL);
+
+	lpddsprimary->Blt(NULL, lpddsback, NULL, DDBLT_WAIT, NULL);
 
 }
 
@@ -2181,7 +2241,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	wclass.lpszMenuName = NULL;
 	wclass.lpszClassName = WINCLASSNAME;
 	wclass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
-	ShowCursor(false);
+
+	// 不显示鼠标
+//	ShowCursor(false);
 
 	RegisterClassEx(&wclass);
 	HWND hwnd;
@@ -2242,7 +2304,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 
 		//	MessageBox(NULL, "Create window ok!", "ok", MB_OK);
-
 	Game_Init();
 
 	MSG msg;
@@ -2863,7 +2924,26 @@ void On_GameInit()
 }
 void On_GameMain()
 {
-	Test_Draw_Polygon2D_Main();
+	// MOUSE_MOVED  鼠标左键
+	// MOUSE_EVENT  鼠标右键
+	if (KEYDOWN(MOUSE_MOVED))
+	{
+		mouseDown = true;
+		lastMousePoint = mousePoint;
+		GetCursorPos(&mousePoint);
+//		PostMessage(main_window_handle, WM_CLOSE, 0, 0);
+//		return;
+	}
+	if (KEYUP(MOUSE_MOVED))
+	{
+		lastMousePoint = mousePoint;
+		GetCursorPos(&mousePoint);
+		mouseDown = false;
+	}
+
+//	Test_Draw_Polygon2D_Main();
+	Test_Draw_Mouse_Pixel_Blt_Main();
+//	Test_Draw_Mouse_Pixel_Main();
 	//	Test_DrawClipLine_Main();
 		//		Test_DrawLine_Main();
 				//	Test_win_Main();
