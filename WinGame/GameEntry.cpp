@@ -2079,7 +2079,7 @@ void Test_DrawLine_Main()
 	else
 	{
 
-	Draw_Line32(x0, y0, x1, y1, RandomRGBA32(), (UINT *)ddsd.lpSurface, ddsd.lPitch);
+		Draw_Line32(x0, y0, x1, y1, RandomRGBA32(), (UINT *)ddsd.lpSurface, ddsd.lPitch);
 	}
 	lpddsprimary->Unlock(NULL);
 
@@ -2109,17 +2109,17 @@ RECT default_clip_rect = { 0,0,SCREEN_WIDTH - 1,SCREEN_HEIGHT - 1 };
 VERTEX2DF ship_vertexs[11] = { -17,0,-25,-10,-2,-10,-2,-30,2,-30,2,-28,20,-20,2,-12,2,-10,25,-10,17,0 };
 //VERTEX2DI ship_vertexs[11] = { -17,0,-25,-10,-2,-10,-2,-30,2,-30,2,-28,20,-20,2,-12,2,-10,25,-10,17,0 };
 
-int Draw_Polygon2D(POLYGON2D_PTR poly, UCHAR *vbuffer, int lpitch)
+int Draw_Polygon2D(RECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, int lpitch)
 {
 	if (poly->state)
 	{
 		int i = 0;
 		for (; i < poly->num_verts - 1; ++i)
 		{
-			Draw_Clip_Line8(default_clip_rect, poly->vlist[i].x + poly->x0, poly->vlist[i].y + poly->y0, poly->vlist[i + 1].x + poly->x0, poly->vlist[i + 1].y + poly->y0, poly->color, vbuffer, lpitch);
+			Draw_Clip_Line8(clipRect, poly->vlist[i].x + poly->x0, poly->vlist[i].y + poly->y0, poly->vlist[i + 1].x + poly->x0, poly->vlist[i + 1].y + poly->y0, poly->color, vbuffer, lpitch);
 			//			Draw_Line8(poly->vlist[i].x + poly->x0, poly->vlist[i].y + poly->y0, poly->vlist[i + 1].x + poly->x0, poly->vlist[i + 1].y + poly->y0, poly->color, vbuffer, lpitch);
 		}
-		Draw_Clip_Line8(default_clip_rect, poly->vlist[i].x + poly->x0, poly->vlist[i].y + poly->y0, poly->vlist[0].x + poly->x0, poly->vlist[0].y + poly->y0, poly->color, vbuffer, lpitch);
+		Draw_Clip_Line8(clipRect, poly->vlist[i].x + poly->x0, poly->vlist[i].y + poly->y0, poly->vlist[0].x + poly->x0, poly->vlist[0].y + poly->y0, poly->color, vbuffer, lpitch);
 		//		Draw_Line8(poly->vlist[i].x + poly->x0, poly->vlist[i].y + poly->y0, poly->vlist[0].x + poly->x0, poly->vlist[0].y + poly->y0, poly->color, vbuffer, lpitch);
 		return 1;
 	}
@@ -2145,19 +2145,19 @@ void Test_Draw_Polygon_Init()
 
 }
 
-void Test_Draw_Mouse_Line(UCHAR * buffer,int lpitch)
+void Test_Draw_Mouse_Line(UCHAR * buffer, int lpitch)
 {
 	if (mouseDown)
 	{
 		Draw_Clip_Line8(default_clip_rect, lastMousePoint.x, lastMousePoint.y, mousePoint.x, mousePoint.y, rand() % 256, buffer, lpitch);
-//		Plot8(mousePoint.x, mousePoint.y, rand() % 256, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+		//		Plot8(mousePoint.x, mousePoint.y, rand() % 256, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
 	}
 }
 
 // 出现一个转成小点的问题。原因是，顶点用int表示，由于float->int的误差，导致最后顶点都变成了0：。
 void Test_Draw_Polygon2D_Main()
 {
-//	DDraw_Fill_Surface(lpddsback, 0);
+	//	DDraw_Fill_Surface(lpddsback, 0);
 
 	DDRAW_INIT_STRUCT(ddsd);
 
@@ -2166,7 +2166,7 @@ void Test_Draw_Polygon2D_Main()
 	for (int i = 0; i < num_poly; ++i)
 	{
 		airships[i].state = 1;
-		Draw_Polygon2D(&airships[i], (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+		Draw_Polygon2D(default_clip_rect, &airships[i], (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
 		//		Rotate_Polygon2d(&airships[i], 5);
 		//		Rotate_Polygon2d_Fast(&airships[i], 5);
 		Translate_Polygon2d(&airships[i], airships[i].xv, airships[i].yv);
@@ -2177,7 +2177,7 @@ void Test_Draw_Polygon2D_Main()
 		}
 
 	}
-//	Test_Draw_Mouse_Line((UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+	//	Test_Draw_Mouse_Line((UCHAR*)ddsd.lpSurface, ddsd.lPitch);
 
 	lpddsback->Unlock(NULL);
 
@@ -2196,8 +2196,8 @@ void Test_Draw_Mouse_Pixel_Main()
 	if (mouseDown)
 	{
 		Draw_Line8(lastMousePoint.x, lastMousePoint.y, mousePoint.x, mousePoint.y, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
-//		Draw_Clip_Line8(default_clip_rect, lastMousePoint.x, lastMousePoint.y, mousePoint.x, mousePoint.y, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
-//		Plot8(mousePoint.x, mousePoint.y, rand() % 256, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+		//		Draw_Clip_Line8(default_clip_rect, lastMousePoint.x, lastMousePoint.y, mousePoint.x, mousePoint.y, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+		//		Plot8(mousePoint.x, mousePoint.y, rand() % 256, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
 	}
 
 	lpddsback->Unlock(NULL);
@@ -2218,8 +2218,8 @@ void Test_Draw_Mouse_Pixel_Blt_Main()
 	if (mouseDown)
 	{
 		Draw_Line8(lastMousePoint.x, lastMousePoint.y, mousePoint.x, mousePoint.y, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
-//		Draw_Clip_Line8(default_clip_rect, lastMousePoint.x, lastMousePoint.y, mousePoint.x, mousePoint.y, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
-//		Plot8(mousePoint.x, mousePoint.y, rand() % 256, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+		//		Draw_Clip_Line8(default_clip_rect, lastMousePoint.x, lastMousePoint.y, mousePoint.x, mousePoint.y, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+		//		Plot8(mousePoint.x, mousePoint.y, rand() % 256, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
 	}
 
 	lpddsback->Unlock(NULL);
@@ -2251,27 +2251,27 @@ void Test_matrix_Main()
 	DDRAW_INIT_STRUCT(ddsd);
 	lpddsback->Lock(NULL, &ddsd, DDLOCK_SURFACEMEMORYPTR | DDLOCK_WAIT, NULL);
 
-	Draw_Polygon2D(&ship, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+	Draw_Polygon2D(default_clip_rect, &ship, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
 
 	if (KEYDOWN('A'))
 	{
 		Scale_Polygon2d_Mat(&ship, 1.1, 1.1);
 	}
 	else
-	if (KEYDOWN('S'))
-	{
-		Scale_Polygon2d_Mat(&ship, 0.9, 0.9);
-	}
+		if (KEYDOWN('S'))
+		{
+			Scale_Polygon2d_Mat(&ship, 0.9, 0.9);
+		}
 
 	if (KEYDOWN('Z'))
 	{
 		Rotate_Polygon2d_Mat(&ship, 5);
 	}
 	else
-	if (KEYDOWN('X'))
-	{
-		Rotate_Polygon2d_Mat(&ship, -5);
-	}
+		if (KEYDOWN('X'))
+		{
+			Rotate_Polygon2d_Mat(&ship, -5);
+		}
 
 	if (KEYDOWN(VK_UP))
 	{
@@ -2283,14 +2283,14 @@ void Test_matrix_Main()
 	}
 	else if (KEYDOWN(VK_LEFT))
 	{
-		Translate_Polygon2d_Mat(&ship, -5,0);
+		Translate_Polygon2d_Mat(&ship, -5, 0);
 	}
 	else if (KEYDOWN(VK_RIGHT))
 	{
 		Translate_Polygon2d_Mat(&ship, 5, 0);
 	}
 
-	Draw_Text_GDI_IN_DD("cycycycycycy", 10, 10, RGB(255,255,255), lpddsback);
+	Draw_Text_GDI_IN_DD("cycycycycycy", 10, 10, RGB(255, 255, 255), lpddsback);
 	Draw_Text_GDI_IN_DD(buffer, 10, SCREEN_HEIGHT - 10, RGB(255, 255, 255), lpddsback);
 
 	lpddsback->Unlock(NULL);
@@ -2298,6 +2298,399 @@ void Test_matrix_Main()
 	while (lpddsprimary->Flip(NULL, DDFLIP_WAIT));
 }
 #pragma endregion
+
+#pragma region chapter8,demo_8_7,填充多边形 （光栅化算法）
+// 填充平底三角形 ,按照逆时针方向作为正方向发送顶点。函数内部调换为：p0是顶点，p1是left点，p2是right点
+void Draw_Bottom_Tri(RECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR* dest_buffer, int mempitch)
+{
+	float dxy_right,
+		dxy_left,
+		xs, xe,
+		height,
+		delta_hegith;
+	int tmp_x,
+		tmp_y,
+		right,
+		left;
+
+	UCHAR *dest_addr;
+
+	// 移动顶点，令p0点是顶点,p1p2是底边
+	// 并且，判断令p1点在左边，p2点在右边
+	if (y1 != y0 && y1 != y2)
+	{
+		tmp_y = y0;
+		tmp_x = x0;
+		y0 = y1;
+		x0 = x1;
+
+		y1 = tmp_y;
+		x1 = tmp_x;
+	}
+	else if (y2 != y0 && y2 != y1)
+	{
+		tmp_y = y0;
+		tmp_x = x0;
+
+		y0 = y2;
+		x0 = x2;
+
+		y2 = tmp_y;
+		x2 = tmp_x;
+	}
+	// 交换p1点和p2点 （y值是一样的，不用换）
+	if (x1 > x2)
+	{
+		tmp_x = x1;
+		x1 = x2;
+
+		x2 = tmp_x;
+	}
+
+	height = y1 - y0;
+
+	dxy_left = (x1 - x0)*1.0f / height;
+	dxy_right = (x2 - x0)*1.0f / height;
+
+	xs = x0, xe = x0;
+
+	// 查看clip范围
+	if (y0 < clipRect.top)	// 顶点在clip框外，获取新的height和xs xe
+	{
+		delta_hegith = clipRect.top - y0;
+
+		xs += dxy_left * delta_hegith;		// 新起点和终点
+		xe += dxy_right * delta_hegith;
+
+		y0 = clipRect.top;
+	}
+
+
+	if (y1 > clipRect.bottom)				// 底边出了clip框
+	{
+		y1 = y2 = clipRect.bottom;
+	}
+
+	dest_addr = dest_buffer + y0 * mempitch;		// 计算内存的起点位置
+
+	// 开始clip水平扫描线，和画线
+
+	// 如果这个时候，点都在clip框内：
+	if (x0 > clipRect.left&&x0<clipRect.right&&
+		x1>clipRect.left&&x1<clipRect.right&&
+		x2>clipRect.left&&x2 < clipRect.right)
+	{
+		for (int i = y0; i <= y2; ++i,dest_addr+=mempitch)		// !注意，是i<=y2 。之前没有加=号:(
+		{
+			memset((UCHAR*)dest_addr + (unsigned int)xs, color, (unsigned int)(xe - xs + 1));
+
+			xs += dxy_left;
+			xe += dxy_right;
+		}
+	}
+	else  // 有的点不在clip框内
+	{
+		for (int i = y0; i <= y2; ++i,dest_addr+=mempitch)
+		{
+			left = xs, right = xe;
+
+			xs += dxy_left;
+			xe += dxy_right;
+
+			if (right > clipRect.right)
+			{
+				right = clipRect.right;
+				if (left > clipRect.right)		// 端点在clip框外，跳过
+				{
+//					dest_addr += mempitch;
+					continue;
+				}
+			}
+			if (left < clipRect.left)
+			{
+				left = clipRect.left;
+				if (right < clipRect.left)		// 端点在clip框外，跳过
+				{
+//					dest_addr += mempitch;
+					continue;
+				}
+			}
+			memset((UCHAR*)dest_addr + (unsigned int)left, color, (unsigned int)(right - left + 1));
+
+//			dest_addr += mempitch;		// for 循环中加过了
+		}
+
+	}
+}
+
+// 填充平顶三角形，按照逆时针方向作为正方向发送顶点,函数内部调换为：p0是低点，p1是right点，p2是left点
+void Draw_Top_Tri(RECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR* dest_buffer, int mempitch)
+{
+	float dxy_right,
+		dxy_left,
+		xs, xe,
+		height,
+		delta_hegith;
+	int tmp_x,
+		tmp_y,
+		right,
+		left;
+
+	UCHAR *dest_addr;
+
+	if (y1 != y2 && y1 != y0)		// p1是低点
+	{
+		tmp_x = x1;
+		tmp_y = y1;
+		x1 = x0;
+		y1 = y0;
+
+		x0 = tmp_x;
+		y0 = tmp_y;
+	}
+	else if (y2 != y1 && y2 != y0)
+	{
+		tmp_x = x2;
+		tmp_y = y2;
+		x2 = x0;
+		y2 = y0;
+
+		x0 = tmp_x;
+		y0 = tmp_y;
+	}
+
+	// 调换是的p1在右边，p2在左边,y值一样，不用换
+	if (x1 < x2)
+	{
+		tmp_x = x2;
+		x2 = x1;
+
+		x1 = tmp_x;
+	}
+
+	// 填充平底三角形
+	height = y2 - y0;
+	dxy_left = (x2 - x0)*1.0f / height;
+	dxy_right = (x1 - x0)*1.0f / height;
+	xs = (float)x0, xe = (float)x0;
+
+	if (y0 > clipRect.bottom)
+	{
+		delta_hegith = y0 - clipRect.bottom;
+
+		xs -= dxy_left * delta_hegith;
+		xe -= dxy_right * delta_hegith;
+
+		y0 = clipRect.bottom;
+	}
+	if (y1 < clipRect.top)
+	{
+		y1 = y2 = clipRect.top;
+	}
+
+	// 计算起点行
+	dest_addr = dest_buffer + y0 * mempitch;
+
+	// 点都在clip框内
+	if (x0 > clipRect.left&&x0<clipRect.right&&
+		x1>clipRect.left&&x1<clipRect.right&&
+		x2>clipRect.left&&x2 < clipRect.right)
+	{
+		for (int i = y0; i >= y1; --i, dest_addr -= mempitch)
+		{
+
+			memset((UCHAR*)dest_addr + (unsigned int)xs, color, (unsigned int)(xe - xs + 1));
+			xs -= dxy_left;
+			xe -= dxy_right;
+		}
+	}
+	else	// 有的点被clip掉了
+	{
+		for (int i = y0; i >= y1; --i, dest_addr -= mempitch)
+		{
+			left = xs;
+			right = xe;
+
+			xs -= dxy_left;
+			xe -= dxy_right;
+
+			if (left < clipRect.left)
+			{
+				left = clipRect.left;
+				if (right < clipRect.left)
+					continue;
+			}
+			if (right > clipRect.right)
+			{
+				right = clipRect.right;
+				if (left > clipRect.right)
+					continue;
+			}
+
+			memset((UCHAR*)dest_addr + (unsigned int)left, color, (unsigned int)(right - left + 1));
+		}
+
+	}
+
+//	for (int i = y1; i > y0; --i)
+//	{
+//		Draw_Clip_Line8(default_clip_rect, xs + 0.5, i, xe + 0.5, i, color, dest_buffer, mempitch);
+//		xs -= dxy_left;
+//		xe -= dxy_right;
+//	}
+}
+
+// 任意一个三角形。顶点顺序逆时针发送。内部调整为：p0为顶点，p1为左边点，p2为右边点
+// 使用分割为两个三角形的方式进行填充
+void Draw_Triangle_2D(RECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2,
+	int color, UCHAR *dest_buffer, int mempitch)
+{
+	// 按y值排序 y0<y1<y2
+	int tmp;
+	// 是垂直的线或者是水平的线，返回
+	if (x0 == x1 && x1 == x2 || y0 == y1 && y1 == y2)
+	{
+		return;
+	}
+
+	if (y1 < y2&&y1 < y0)		// y1是顶点,与0点交换
+	{
+		tmp = y0;
+		y0 = y1;
+		y1 = tmp;
+
+		tmp = x0;
+		x0 = x1;
+		x1 = tmp;
+//		SwapInt(y1, y0);
+//		SwapInt(x1, x0);
+	}
+	else if (y2 < y1&&y2 < y0)	// y2是顶点，与0点交换
+	{
+		tmp = y0;
+		y0 = y2;
+		y2 = tmp;
+
+		tmp = x0;
+		x0 = x2;
+		x2 = tmp;
+//		SwapInt(y2, y0);
+//		SwapInt(x2, x0);
+	}
+
+	if (y2 < y1)		// 按y值排序
+	{
+		tmp = y1;
+		y1 = y2;
+		y2 = tmp;
+
+		tmp = x1;
+		x1 = x2;
+		x2 = tmp;
+	}
+
+
+	// 检查是否全部在clip框外
+	if (y0 > clipRect.bottom ||					// 在clip框下面
+		y2 < clipRect.top ||		// 在clip框上面
+		x0<clipRect.left&&x1<clipRect.left ||	// 在clip框左面
+		x0 > clipRect.right&&x2 > clipRect.right // 在clip框右面
+		)
+	{
+		return;
+	}
+
+	if (y0 == y1 || y0 == y2)		// 是个平顶三角形
+	{
+		Draw_Top_Tri(clipRect, x0, y0, x1, y1, x2, y2, color, dest_buffer, mempitch);
+		return;
+	}
+
+	if (y1 == y2)		// 是个平底三角形
+	{
+		Draw_Bottom_Tri(clipRect, x0, y0, x1, y1, x2, y2, color, dest_buffer, mempitch);
+		return;
+	}
+	
+	// 一般三角形，分割成两个三角形
+	// 设Ptemp为临时点，已经知道，Yt=y1,根据相似三角形得：
+	// Xt=(x0-x2)*(y1-y2)/(y0-y2)+x2
+	float new_x = x2 + (int)((float)(x0 - x2)*(float)(y1 - y2) / (float)(y0 - y2) + 0.5);
+
+	Draw_Bottom_Tri(clipRect, x0, y0, x1, y1, new_x, y1, color, dest_buffer, mempitch);	// P0,P1,Pt
+	Draw_Top_Tri(clipRect, x2, y2, new_x, y1, x1, y1,color,dest_buffer,mempitch);			// P2,Pt,P1
+	return;
+}
+VERTEX2DF triPoints[] = { 300,400,300,100,100,200 };
+void Test_DrawTriangle_Main()
+{
+	DDraw_Fill_Surface(lpddsback, 0);
+	DDRAW_INIT_STRUCT(ddsd);
+	lpddsback->Lock(NULL, &ddsd, DDLOCK_WAIT | DDLOCK_SURFACEMEMORYPTR, NULL);
+
+	//	Draw_Bottom_Tri(100, 200, 10, 400, 400, 400, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+	//	Draw_Bottom_Tri( 10, 400,100, 200, 400, 400, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+	RECT clip = { 100,100,400,400 };
+//	Draw_Bottom_Tri(default_clip_rect, 400, 400, 10, 400, 100, 200, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+//	Draw_Bottom_Tri(clip, 400, 400, 10, 400, 100, 200, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+
+//	RECT clip = { 170,100,450,350 };
+//	Draw_Top_Tri(default_clip_rect, 300,400,450,150,150,150, 120, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+//	Draw_Top_Tri(clip, 300,400,450,150,150,150, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+//	Draw_Top_Tri(default_clip_rect, 300,400,450,150,150,150, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+	//	Draw_Top_Tri(300,400,200,100,100,400, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+	//	Draw_Top_Tri(100,400,300,400,200,100, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+	int x0 = rand() % SCREEN_WIDTH;
+	int y0 = rand() % SCREEN_HEIGHT;
+	int x1 = rand() % SCREEN_WIDTH;
+	int y1 = rand() % SCREEN_HEIGHT;
+	int x2 = rand() % SCREEN_WIDTH;
+	int y2 = rand() % SCREEN_HEIGHT;
+	Draw_Triangle_2D(clip, x0,y0,x1,y1,x2,y2, rand()%256, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+
+//	Draw_Top_Tri(default_clip_rect, 300,400,450,150,150,150, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+//	Draw_Triangle_2D(default_clip_rect, 300, 400, 300, 100, 100, 200, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+//	Draw_Triangle_2D(default_clip_rect, 100, 100, 200, 150, 40, 200, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+
+	POLYGON2D clippoly;
+	clippoly.state = 1;
+	clippoly.color = 120;
+	clippoly.num_verts = 4;
+	clippoly.x0 = 0;
+	clippoly.y0 = 0;
+	clippoly.vlist = new VERTEX2DF[4];
+	clippoly.vlist[0].x = clip.left;
+	clippoly.vlist[0].y = clip.top;
+	clippoly.vlist[1].x = clip.right;
+	clippoly.vlist[1].y = clip.top;
+	clippoly.vlist[2].x = clip.right;
+	clippoly.vlist[2].y = clip.bottom;
+	clippoly.vlist[3].x = clip.left;
+	clippoly.vlist[3].y = clip.bottom;
+	Draw_Polygon2D(default_clip_rect, &clippoly, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+
+	POLYGON2D poly;
+	poly.state = 1;
+	poly.color = 255;
+	poly.num_verts = 3;
+	poly.x0 = 0;
+	poly.y0 = 0;
+	poly.vlist = new VERTEX2DF[3];
+	poly.vlist[0].x = x0;
+	poly.vlist[0].y = y0;
+	poly.vlist[1].x = x1;
+	poly.vlist[1].y = y1;
+	poly.vlist[2].x = x2;
+	poly.vlist[2].y = y2;
+
+	Draw_Polygon2D(default_clip_rect, &poly, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+	lpddsback->Unlock(NULL);
+
+	while (lpddsprimary->Flip(NULL, DDFLIP_WAIT));
+
+}
+
+#pragma endregion demo_8_7
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
@@ -2824,9 +3217,9 @@ COLORREF RandomColor()
 	return color;
 
 }
-COLORREF GetColorRef(int r,int g,int b)
+COLORREF GetColorRef(int r, int g, int b)
 {
-	COLORREF  color = RGB(r,g,b);
+	COLORREF  color = RGB(r, g, b);
 	return color;
 
 }
@@ -2986,26 +3379,26 @@ void TestDraw(HWND hwnd)
 }
 void On_GameInit()
 {
-	Test_matrix_Init();
-//	Test_Draw_Polygon_Init();
-	//	Test_DrawLine_Init();
-		//	Test_dd_gdi_Main();
-		//	Test_win_Init();
-		//		InitAttachClip();
+	//	Test_matrix_Init();
+	//	Test_Draw_Polygon_Init();
+		//	Test_DrawLine_Init();
+			//	Test_dd_gdi_Main();
+			//	Test_win_Init();
+			//		InitAttachClip();
 
-		//	if (!double_buffer)
-		//	{
-		//		double_buffer = new UCHAR[SCREEN_WIDTH*SCREEN_HEIGHT];
-		//	}
+			//	if (!double_buffer)
+			//	{
+			//		double_buffer = new UCHAR[SCREEN_WIDTH*SCREEN_HEIGHT];
+			//	}
 
-			//	TestInitBackSurfaceColor16BIT();
+				//	TestInitBackSurfaceColor16BIT();
 
-			//		TestInitHappyFace();
-		//	TestBitMapLoad();
+				//		TestInitHappyFace();
+			//	TestBitMapLoad();
 
-		//	Test_Sprite_Anim_Init();
-		//	Test_light_256_Init();
-		//	Test_dd_gdi_Init();
+			//	Test_Sprite_Anim_Init();
+			//	Test_light_256_Init();
+			//	Test_dd_gdi_Init();
 }
 void On_GameMain()
 {
@@ -3016,8 +3409,8 @@ void On_GameMain()
 		mouseDown = true;
 		lastMousePoint = mousePoint;
 		GetCursorPos(&mousePoint);
-//		PostMessage(main_window_handle, WM_CLOSE, 0, 0);
-//		return;
+		//		PostMessage(main_window_handle, WM_CLOSE, 0, 0);
+		//		return;
 	}
 	if (KEYUP(MOUSE_MOVED))
 	{
@@ -3026,41 +3419,42 @@ void On_GameMain()
 		mouseDown = false;
 	}
 
-	Test_matrix_Main();
-//	Test_Draw_Polygon2D_Main();
-//	Test_Draw_Mouse_Pixel_Blt_Main();
-//	Test_Draw_Mouse_Pixel_Main();
-	//	Test_DrawClipLine_Main();
-		//		Test_DrawLine_Main();
-				//	Test_win_Main();
-				//	Test_dd_gdi_Main();
-				//	Test_light_256_Main();
-					//		Test_Sprite_Anim_Main();
-							//	switch (SCREEN_BPP)
-							//	{
-							//	case 8:
-					//				TestBitmap8Main();
-							//		break;
-							//	case 16:
-							//		TestBitMap16Main();
-							//		break;
-							//	case 24:	// 系统不支持24位。会补一个alpha，成32位。
-							////		TestBitMap24Main();
-							//		break;
-							//	case 32:
-							//		TestBitMap32Main();
-							//		break;
-							//	}
-								//	TestBitmapMain();
-									//	TestClipperHappyFace();
-										//	TestGameMainHappyFace();
-							//					TestBlitCopyOnPrimarySurface();
-								//				TestBlitCopy();
-										//		TestBlitFast();
-							//						TestBlit();
-										//			TestBackBuffer();
-												//	TestDoubleBuffering();
-							//						TestDrawPixels();
+	Test_DrawTriangle_Main();
+	//	Test_matrix_Main();
+	//	Test_Draw_Polygon2D_Main();
+	//	Test_Draw_Mouse_Pixel_Blt_Main();
+	//	Test_Draw_Mouse_Pixel_Main();
+		//	Test_DrawClipLine_Main();
+			//		Test_DrawLine_Main();
+					//	Test_win_Main();
+					//	Test_dd_gdi_Main();
+					//	Test_light_256_Main();
+						//		Test_Sprite_Anim_Main();
+								//	switch (SCREEN_BPP)
+								//	{
+								//	case 8:
+						//				TestBitmap8Main();
+								//		break;
+								//	case 16:
+								//		TestBitMap16Main();
+								//		break;
+								//	case 24:	// 系统不支持24位。会补一个alpha，成32位。
+								////		TestBitMap24Main();
+								//		break;
+								//	case 32:
+								//		TestBitMap32Main();
+								//		break;
+								//	}
+									//	TestBitmapMain();
+										//	TestClipperHappyFace();
+											//	TestGameMainHappyFace();
+								//					TestBlitCopyOnPrimarySurface();
+									//				TestBlitCopy();
+											//		TestBlitFast();
+								//						TestBlit();
+											//			TestBackBuffer();
+													//	TestDoubleBuffering();
+								//						TestDrawPixels();
 
 }
 

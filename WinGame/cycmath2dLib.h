@@ -101,4 +101,9 @@ int Mat_Mul_1X3_3X3(MATRIX1X3_PTR ma, MATRIX3X3_PTR mb, MATRIX1X3_PTR mprod);
 int Mat_Mul_1X2_3X2(MATRIX1X2_PTR ma, MATRIX3X2_PTR mb, MATRIX1X2_PTR mprod);
 
 // ------æÿ’Û‘ÀÀ„   end
+
+
+inline int SwapInt(int &a, int &b);
+inline int SwapFloat(float &a, float &b);
+
 #endif

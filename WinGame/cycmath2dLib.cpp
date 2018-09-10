@@ -210,4 +210,21 @@ int Mat_Mul_1X2_3X2(MATRIX1X2_PTR ma, MATRIX3X2_PTR mb, MATRIX1X2_PTR mprod)
 	return 0;
 }
 
+int SwapInt(int &a, int &b)
+{
+	int tmp = a;
+	a = b;
+	b = tmp;
+
+	return 1;
+}
+
+int SwapFloat(float &a, float &b)
+{
+	float tmp = a;
+	a = b;
+	b = tmp;
+	return 1;
+}
+
 #pragma endregion Matrix‘ÀÀ„
