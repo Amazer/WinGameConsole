@@ -24,6 +24,9 @@
     <ClCompile Include="cycmath2dLib.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CTime.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cyclib1.h">
@@ -33,6 +36,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cycmath2dLib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CTime.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

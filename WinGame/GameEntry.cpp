@@ -11,6 +11,7 @@
 #include "cyclib1.h"
 #include "cycTypeLib.h"
 #include "cycmath2dLib.h"
+#include "CTime.h"
 
 #define WINCLASSNAME "WINCLASS1"
 #define WNDNAME "EngineEntry"
@@ -65,6 +66,8 @@ BITMAP_FILE  bitmap;							// ≤‚ ‘º”‘ÿŒªÕº
 ALIEN_OBJ             aliens[3];				// 3 aliens, one on each level
 int gwidth = -1;
 int gheight = -1;
+
+char buffer[80];	// º«log
 
 // mouse
 
@@ -2103,6 +2106,7 @@ void Test_DrawClipLine_Main()
 const int num_poly = 64;
 POLYGON2D airships[num_poly];
 RECT default_clip_rect = { 0,0,SCREEN_WIDTH - 1,SCREEN_HEIGHT - 1 };
+VERTEX2DF ship_vertexs[11] = { -17,0,-25,-10,-2,-10,-2,-30,2,-30,2,-28,20,-20,2,-12,2,-10,25,-10,17,0 };
 //VERTEX2DI ship_vertexs[11] = { -17,0,-25,-10,-2,-10,-2,-30,2,-30,2,-28,20,-20,2,-12,2,-10,25,-10,17,0 };
 
 int Draw_Polygon2D(POLYGON2D_PTR poly, UCHAR *vbuffer, int lpitch)
@@ -2123,7 +2127,6 @@ int Draw_Polygon2D(POLYGON2D_PTR poly, UCHAR *vbuffer, int lpitch)
 }
 void Test_Draw_Polygon_Init()
 {
-	VERTEX2DF ship_vertexs[11] = { -17,0,-25,-10,-2,-10,-2,-30,2,-30,2,-28,20,-20,2,-12,2,-10,25,-10,17,0 };
 	for (int i = 0; i < num_poly; ++i)
 	{
 		airships[i].color = rand() % 255;
@@ -2226,6 +2229,76 @@ void Test_Draw_Mouse_Pixel_Blt_Main()
 }
 
 #pragma endregion
+
+#pragma region chapter8,demo_8_6,æÿ’Û‘ÀÀ„
+
+POLYGON2D ship;
+void Test_matrix_Init()
+{
+	ship.color = rand() % 256;
+	ship.state = 1;
+	ship.x0 = SCREEN_WIDTH * 0.5;
+	ship.y0 = SCREEN_HEIGHT * 0.5;
+	ship.xv = 0;
+	ship.yv = 0;
+	ship.num_verts = 11;
+	ship.vlist = ship_vertexs;
+}
+
+void Test_matrix_Main()
+{
+	DDraw_Fill_Surface(lpddsback, 0);
+	DDRAW_INIT_STRUCT(ddsd);
+	lpddsback->Lock(NULL, &ddsd, DDLOCK_SURFACEMEMORYPTR | DDLOCK_WAIT, NULL);
+
+	Draw_Polygon2D(&ship, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+
+	if (KEYDOWN('A'))
+	{
+		Scale_Polygon2d_Mat(&ship, 1.1, 1.1);
+	}
+	else
+	if (KEYDOWN('S'))
+	{
+		Scale_Polygon2d_Mat(&ship, 0.9, 0.9);
+	}
+
+	if (KEYDOWN('Z'))
+	{
+		Rotate_Polygon2d_Mat(&ship, 5);
+	}
+	else
+	if (KEYDOWN('X'))
+	{
+		Rotate_Polygon2d_Mat(&ship, -5);
+	}
+
+	if (KEYDOWN(VK_UP))
+	{
+		Translate_Polygon2d_Mat(&ship, 0, -5);
+	}
+	else if (KEYDOWN(VK_DOWN))
+	{
+		Translate_Polygon2d_Mat(&ship, 0, 5);
+	}
+	else if (KEYDOWN(VK_LEFT))
+	{
+		Translate_Polygon2d_Mat(&ship, -5,0);
+	}
+	else if (KEYDOWN(VK_RIGHT))
+	{
+		Translate_Polygon2d_Mat(&ship, 5, 0);
+	}
+
+	Draw_Text_GDI_IN_DD("cycycycycycy", 10, 10, RGB(255,255,255), lpddsback);
+	Draw_Text_GDI_IN_DD(buffer, 10, SCREEN_HEIGHT - 10, RGB(255, 255, 255), lpddsback);
+
+	lpddsback->Unlock(NULL);
+
+	while (lpddsprimary->Flip(NULL, DDFLIP_WAIT));
+}
+#pragma endregion
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
 	WNDCLASSEX wclass;
@@ -2304,6 +2377,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 
 		//	MessageBox(NULL, "Create window ok!", "ok", MB_OK);
+
+	CTime::deltaTime = 0.0;
+	CTime::timeSinceStartUp = 0.0;
+
 	Game_Init();
 
 	MSG msg;
@@ -2533,6 +2610,8 @@ int Game_Init(void *params, int num_parms)
 
 	Win_Clipper_Init();
 
+	Init_LookTable();
+
 	On_GameInit();
 	return 1;
 }
@@ -2745,6 +2824,12 @@ COLORREF RandomColor()
 	return color;
 
 }
+COLORREF GetColorRef(int r,int g,int b)
+{
+	COLORREF  color = RGB(r,g,b);
+	return color;
+
+}
 
 int x, y, w = 150, h = 150;
 COLORREF color = RGB(rand() % 255, rand() % 255, rand() % 255);
@@ -2901,8 +2986,8 @@ void TestDraw(HWND hwnd)
 }
 void On_GameInit()
 {
-	Init_LookTable();
-	Test_Draw_Polygon_Init();
+	Test_matrix_Init();
+//	Test_Draw_Polygon_Init();
 	//	Test_DrawLine_Init();
 		//	Test_dd_gdi_Main();
 		//	Test_win_Init();
@@ -2941,8 +3026,9 @@ void On_GameMain()
 		mouseDown = false;
 	}
 
+	Test_matrix_Main();
 //	Test_Draw_Polygon2D_Main();
-	Test_Draw_Mouse_Pixel_Blt_Main();
+//	Test_Draw_Mouse_Pixel_Blt_Main();
 //	Test_Draw_Mouse_Pixel_Main();
 	//	Test_DrawClipLine_Main();
 		//		Test_DrawLine_Main();

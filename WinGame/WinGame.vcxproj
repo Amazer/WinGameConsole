@@ -122,11 +122,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CTime.cpp" />
     <ClCompile Include="cyclib1.cpp" />
     <ClCompile Include="cycmath2dLib.cpp" />
     <ClCompile Include="GameEntry.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CTime.h" />
     <ClInclude Include="cyclib1.h" />
     <ClInclude Include="cycmath2dLib.h" />
     <ClInclude Include="cycTypeLib.h" />
