@@ -9,7 +9,6 @@
 #include <math.h>
 
 #include "cyclib1.h"
-#include "cycTypeLib.h"
 #include "cycmath2dLib.h"
 #include "CTime.h"
 
@@ -827,7 +826,7 @@ int TestBitMapLoad()
 	//	const char *bmpName = "cyc_flower.bmp";
 	//	const char *bmpName = "bitmap8.bmp";
 	//	const char *bmpName = "bitmap24.bmp";
-	const char *bmpName = TEST_BMP_NAME;
+	const char *bmpName = "bitmap8.bmp";
 	if (!Load_Bitmap_File(&bitmap, bmpName))
 	{
 		return 0;
@@ -2301,7 +2300,7 @@ void Test_matrix_Main()
 
 #pragma region chapter8,demo_8_7,填充多边形 （光栅化算法）
 // 填充平底三角形 ,按照逆时针方向作为正方向发送顶点。函数内部调换为：p0是顶点，p1是left点，p2是right点
-void Draw_Bottom_Tri(RECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR* dest_buffer, int mempitch)
+void Draw_Bottom_Tri(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR* dest_buffer, int mempitch)
 {
 	float dxy_right,
 		dxy_left,
@@ -2355,20 +2354,20 @@ void Draw_Bottom_Tri(RECT clipRect, int x0, int y0, int x1, int y1, int x2, int 
 	xs = x0, xe = x0;
 
 	// 查看clip范围
-	if (y0 < clipRect.top)	// 顶点在clip框外，获取新的height和xs xe
+	if (y0 < clipRect->top)	// 顶点在clip框外，获取新的height和xs xe
 	{
-		delta_hegith = clipRect.top - y0;
+		delta_hegith = clipRect->top - y0;
 
 		xs += dxy_left * delta_hegith;		// 新起点和终点
 		xe += dxy_right * delta_hegith;
 
-		y0 = clipRect.top;
+		y0 = clipRect->top;
 	}
 
 
-	if (y1 > clipRect.bottom)				// 底边出了clip框
+	if (y1 > clipRect->bottom)				// 底边出了clip框
 	{
-		y1 = y2 = clipRect.bottom;
+		y1 = y2 = clipRect->bottom;
 	}
 
 	dest_addr = dest_buffer + y0 * mempitch;		// 计算内存的起点位置
@@ -2376,9 +2375,9 @@ void Draw_Bottom_Tri(RECT clipRect, int x0, int y0, int x1, int y1, int x2, int 
 	// 开始clip水平扫描线，和画线
 
 	// 如果这个时候，点都在clip框内：
-	if (x0 > clipRect.left&&x0<clipRect.right&&
-		x1>clipRect.left&&x1<clipRect.right&&
-		x2>clipRect.left&&x2 < clipRect.right)
+	if (x0 > clipRect->left&&x0<clipRect->right&&
+		x1>clipRect->left&&x1<clipRect->right&&
+		x2>clipRect->left&&x2 < clipRect->right)
 	{
 		for (int i = y0; i <= y2; ++i,dest_addr+=mempitch)		// !注意，是i<=y2 。之前没有加=号:(
 		{
@@ -2397,19 +2396,19 @@ void Draw_Bottom_Tri(RECT clipRect, int x0, int y0, int x1, int y1, int x2, int 
 			xs += dxy_left;
 			xe += dxy_right;
 
-			if (right > clipRect.right)
+			if (right > clipRect->right)
 			{
-				right = clipRect.right;
-				if (left > clipRect.right)		// 端点在clip框外，跳过
+				right = clipRect->right;
+				if (left > clipRect->right)		// 端点在clip框外，跳过
 				{
 //					dest_addr += mempitch;
 					continue;
 				}
 			}
-			if (left < clipRect.left)
+			if (left < clipRect->left)
 			{
-				left = clipRect.left;
-				if (right < clipRect.left)		// 端点在clip框外，跳过
+				left = clipRect->left;
+				if (right < clipRect->left)		// 端点在clip框外，跳过
 				{
 //					dest_addr += mempitch;
 					continue;
@@ -2424,7 +2423,7 @@ void Draw_Bottom_Tri(RECT clipRect, int x0, int y0, int x1, int y1, int x2, int 
 }
 
 // 填充平顶三角形，按照逆时针方向作为正方向发送顶点,函数内部调换为：p0是低点，p1是right点，p2是left点
-void Draw_Top_Tri(RECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR* dest_buffer, int mempitch)
+void Draw_Top_Tri(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR* dest_buffer, int mempitch)
 {
 	float dxy_right,
 		dxy_left,
@@ -2474,27 +2473,27 @@ void Draw_Top_Tri(RECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2,
 	dxy_right = (x1 - x0)*1.0f / height;
 	xs = (float)x0, xe = (float)x0;
 
-	if (y0 > clipRect.bottom)
+	if (y0 > clipRect->bottom)
 	{
-		delta_hegith = y0 - clipRect.bottom;
+		delta_hegith = y0 - clipRect->bottom;
 
 		xs -= dxy_left * delta_hegith;
 		xe -= dxy_right * delta_hegith;
 
-		y0 = clipRect.bottom;
+		y0 = clipRect->bottom;
 	}
-	if (y1 < clipRect.top)
+	if (y1 < clipRect->top)
 	{
-		y1 = y2 = clipRect.top;
+		y1 = y2 = clipRect->top;
 	}
 
 	// 计算起点行
 	dest_addr = dest_buffer + y0 * mempitch;
 
 	// 点都在clip框内
-	if (x0 > clipRect.left&&x0<clipRect.right&&
-		x1>clipRect.left&&x1<clipRect.right&&
-		x2>clipRect.left&&x2 < clipRect.right)
+	if (x0 > clipRect->left&&x0<clipRect->right&&
+		x1>clipRect->left&&x1<clipRect->right&&
+		x2>clipRect->left&&x2 < clipRect->right)
 	{
 		for (int i = y0; i >= y1; --i, dest_addr -= mempitch)
 		{
@@ -2514,16 +2513,16 @@ void Draw_Top_Tri(RECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2,
 			xs -= dxy_left;
 			xe -= dxy_right;
 
-			if (left < clipRect.left)
+			if (left < clipRect->left)
 			{
-				left = clipRect.left;
-				if (right < clipRect.left)
+				left = clipRect->left;
+				if (right < clipRect->left)
 					continue;
 			}
-			if (right > clipRect.right)
+			if (right > clipRect->right)
 			{
-				right = clipRect.right;
-				if (left > clipRect.right)
+				right = clipRect->right;
+				if (left > clipRect->right)
 					continue;
 			}
 
@@ -2542,13 +2541,13 @@ void Draw_Top_Tri(RECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2,
 
 // 任意一个三角形。顶点顺序逆时针发送。内部调整为：p0为顶点，p1为左边点，p2为右边点
 // 使用分割为两个三角形的方式进行填充
-void Draw_Triangle_2D(RECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2,
+void Draw_Triangle_2D(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2,
 	int color, UCHAR *dest_buffer, int mempitch)
 {
 	// 按y值排序 y0<y1<y2
 	int tmp;
 	// 是垂直的线或者是水平的线，返回
-	if (x0 == x1 && x1 == x2 || y0 == y1 && y1 == y2)
+	if ((x0 == x1 && x1 == x2) || (y0 == y1 && y1 == y2))
 	{
 		return;
 	}
@@ -2591,10 +2590,10 @@ void Draw_Triangle_2D(RECT clipRect, int x0, int y0, int x1, int y1, int x2, int
 
 
 	// 检查是否全部在clip框外
-	if (y0 > clipRect.bottom ||					// 在clip框下面
-		y2 < clipRect.top ||		// 在clip框上面
-		x0<clipRect.left&&x1<clipRect.left ||	// 在clip框左面
-		x0 > clipRect.right&&x2 > clipRect.right // 在clip框右面
+	if (y0 > clipRect->bottom ||												// 在clip框下面
+		(y1 < clipRect->top&&y2 < clipRect->top) ||							// 在clip框上面
+		(x0<clipRect->left&&x1<clipRect->left&&x2<clipRect->left) ||			// 在clip框左面
+		(x0 > clipRect->right&&x1 > clipRect->right&&x2 > clipRect->right)		// 在clip框右面
 		)
 	{
 		return;
@@ -2624,33 +2623,29 @@ void Draw_Triangle_2D(RECT clipRect, int x0, int y0, int x1, int y1, int x2, int
 VERTEX2DF triPoints[] = { 300,400,300,100,100,200 };
 void Test_DrawTriangle_Main()
 {
+//	if (!KEYDOWN(VK_SPACE))
+//	{
+//		return;
+//	}
 	DDraw_Fill_Surface(lpddsback, 0);
 	DDRAW_INIT_STRUCT(ddsd);
 	lpddsback->Lock(NULL, &ddsd, DDLOCK_WAIT | DDLOCK_SURFACEMEMORYPTR, NULL);
 
-	//	Draw_Bottom_Tri(100, 200, 10, 400, 400, 400, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
-	//	Draw_Bottom_Tri( 10, 400,100, 200, 400, 400, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
-	RECT clip = { 100,100,400,400 };
-//	Draw_Bottom_Tri(default_clip_rect, 400, 400, 10, 400, 100, 200, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
-//	Draw_Bottom_Tri(clip, 400, 400, 10, 400, 100, 200, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+	RECT clip = {270,190,370,290};
+//	int x0 = 200; 
+//	int y0 = 240;
+//	int x1 = 600;
+//	int y1 = 350;
+//	int x2 = 420;
+//	int y2 = 120;
+	int x0 = rand() % SCREEN_WIDTH - 1;
+	int y0 = rand() % SCREEN_HEIGHT - 1;
+	int x1 = rand() % SCREEN_WIDTH - 1;
+	int y1 = rand() % SCREEN_HEIGHT - 1;
+	int x2 = rand() % SCREEN_WIDTH - 1;
+	int y2 = rand() % SCREEN_HEIGHT - 1;
+	Draw_Triangle_2D(&clip, x0,y0,x1,y1,x2,y2, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
 
-//	RECT clip = { 170,100,450,350 };
-//	Draw_Top_Tri(default_clip_rect, 300,400,450,150,150,150, 120, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
-//	Draw_Top_Tri(clip, 300,400,450,150,150,150, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
-//	Draw_Top_Tri(default_clip_rect, 300,400,450,150,150,150, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
-	//	Draw_Top_Tri(300,400,200,100,100,400, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
-	//	Draw_Top_Tri(100,400,300,400,200,100, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
-	int x0 = rand() % SCREEN_WIDTH;
-	int y0 = rand() % SCREEN_HEIGHT;
-	int x1 = rand() % SCREEN_WIDTH;
-	int y1 = rand() % SCREEN_HEIGHT;
-	int x2 = rand() % SCREEN_WIDTH;
-	int y2 = rand() % SCREEN_HEIGHT;
-	Draw_Triangle_2D(clip, x0,y0,x1,y1,x2,y2, rand()%256, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
-
-//	Draw_Top_Tri(default_clip_rect, 300,400,450,150,150,150, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
-//	Draw_Triangle_2D(default_clip_rect, 300, 400, 300, 100, 100, 200, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
-//	Draw_Triangle_2D(default_clip_rect, 100, 100, 200, 150, 40, 200, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
 
 	POLYGON2D clippoly;
 	clippoly.state = 1;
@@ -2671,7 +2666,7 @@ void Test_DrawTriangle_Main()
 
 	POLYGON2D poly;
 	poly.state = 1;
-	poly.color = 255;
+	poly.color = 220;
 	poly.num_verts = 3;
 	poly.x0 = 0;
 	poly.y0 = 0;
@@ -2692,6 +2687,52 @@ void Test_DrawTriangle_Main()
 
 #pragma endregion demo_8_7
 
+#pragma region demo_8_7/8,定点数函数
+
+
+#pragma endregion
+
+#pragma region demo_8_8,四边形的填充
+
+// 四边形的顶点0,1,2,3顺时针传入，那么两个被分割的三角形为： <0,1,3> <1,2,3>
+inline void Draw_Quad_2D(PRECT p_clipRect, int x0, int y0, int x1, int y1,
+	int x2, int y2, int x3, int y3,
+	int color, UCHAR *dest_buffer, int mempitch)
+{
+
+	Draw_Triangle_2D(p_clipRect, x0, y0, x1, y1, x3, y3, color, dest_buffer, mempitch);
+	Draw_Triangle_2D(p_clipRect, x1, y1, x2, y2, x3, y3, color, dest_buffer, mempitch);
+
+}
+
+void Test_DrawQuad_Main()
+{
+//	if (!KEYDOWN(VK_SPACE))
+//	{
+//		return;
+//	}
+	DDraw_Fill_Surface(lpddsback, 0);
+	DDRAW_INIT_STRUCT(ddsd);
+	lpddsback->Lock(NULL, &ddsd, DDLOCK_WAIT | DDLOCK_SURFACEMEMORYPTR, NULL);
+
+	RECT clip = { 100,100,400,400 };
+//	int x0 = rand() % SCREEN_WIDTH;
+//	int y0 = rand() % SCREEN_HEIGHT;
+//	int width = 10 + rand() % 400;
+//	int height = 10 + rand() % 400;
+	int x0 = 100;
+	int y0 = 100;
+	int width = 111;
+	int height = 10 + 100;
+	Draw_Quad_2D(&default_clip_rect, x0, y0, x0 + width, y0, x0 + width, y0 + height, x0, y0 + height, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+
+	lpddsback->Unlock(NULL);
+
+	while (lpddsprimary->Flip(NULL, DDFLIP_WAIT));
+
+}
+
+#pragma endregion
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
 	WNDCLASSEX wclass;
@@ -2709,7 +2750,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	wclass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
 
 	// 不显示鼠标
-//	ShowCursor(false);
+	ShowCursor(false);
 
 	RegisterClassEx(&wclass);
 	HWND hwnd;
@@ -3419,7 +3460,8 @@ void On_GameMain()
 		mouseDown = false;
 	}
 
-	Test_DrawTriangle_Main();
+	Test_DrawQuad_Main();
+//	Test_DrawTriangle_Main();
 	//	Test_matrix_Main();
 	//	Test_Draw_Polygon2D_Main();
 	//	Test_Draw_Mouse_Pixel_Blt_Main();
