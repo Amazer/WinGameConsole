@@ -9,6 +9,8 @@ typedef unsigned short USHORT;		// 2个字节
 typedef unsigned short UWORD;		// 2个字节
 typedef unsigned long UDWORD;		// 4个字节
 
+typedef int FIXPOINT;				// 定点数
+
 #define __RGB16BIT555(r,g,b) ((b&31)+((g&31)<<5)+((r&31)<<10))
 #define __RGB16BIT565(r,g,b) ((b&31)+((g&63)<<5)+((r&31)<<11))
 #define __RGB24BIT(r,g,b) (b+(g<<8)+(r<<16))
@@ -23,14 +25,12 @@ typedef unsigned long UDWORD;		// 4个字节
 #define WIN_OFFSCREEN_HEIGHT 720	//480 		
 
 #define SCREEN_BPP 8			// 色彩位深  窗口模式不起作用
-#define MS_PER_FRAME 1000			// 每帧毫秒数
+#define MS_PER_FRAME 15			// 每帧毫秒数
 
 #define FULL_SCREEN_MODE 1			
 
 #define BITMAP_ID 0x4D42		// bitmap类型id
 #define MAX_COLORS_PALETTE 256	// 调色板项的最大数量
-
-#define TEST_BMP_NAME  "bitmap8.bmp";
 
 #define KEYDOWN(vk_code) ((GetAsyncKeyState(vk_code)&0x8000)?1:0)
 #define KEYUP(vk_code) ((GetAsyncKeyState(vk_code)&0x8000)?0:1)
@@ -45,6 +45,24 @@ typedef unsigned long UDWORD;		// 4个字节
 #define CLIP_CODE_SE 0x0006
 #define CLIP_CODE_NW 0x0009
 #define CLIP_CODE_SW 0x0005
+
+/////////////// 定点数相关
+// 定点数16.16;将整体的32数转成16.16的定点数。
+// 取部分值的时候，都是32位但是只低16位有效。
+#define FIXP16_SHIFT 16					// 需要偏移的位数
+#define FIXP16_MAG	65536				// 浮点数->整数要放大的倍数 =pow(2,16)
+#define FIXP16_DP_MASK	0x0000ffff		// 定点数 小数部分的mask
+#define FIXP16_WP_MASK	0xffff0000		// 定点数 整数部分的mask
+#define FIXP16_ROUND_UP 0x00008000		// 定点数表示的0.5，用来避免丢失精度的
+
+// int32 -> fix point 16.16;得到的还是32位. 放大65536倍,并且变为了无符号数？？
+#define INT_2_FIXP(n) (n<<FIXP16_SHIFT);
+
+// 定点数p转整数的方法是， (p+补码+1)>>16
+#define FIXP_2_INT(p) ((p+FIXP16_ROUND_UP)>>FIXP16_SHIFT);
+
+
+////////////////////////////////
 
 
 

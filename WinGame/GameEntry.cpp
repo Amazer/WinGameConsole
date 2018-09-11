@@ -2379,7 +2379,7 @@ void Draw_Bottom_Tri(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int
 		x1>clipRect->left&&x1<clipRect->right&&
 		x2>clipRect->left&&x2 < clipRect->right)
 	{
-		for (int i = y0; i <= y2; ++i,dest_addr+=mempitch)		// !注意，是i<=y2 。之前没有加=号:(
+		for (int i = y0; i <= y2; ++i, dest_addr += mempitch)		// !注意，是i<=y2 。之前没有加=号:(
 		{
 			memset((UCHAR*)dest_addr + (unsigned int)xs, color, (unsigned int)(xe - xs + 1));
 
@@ -2389,7 +2389,7 @@ void Draw_Bottom_Tri(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int
 	}
 	else  // 有的点不在clip框内
 	{
-		for (int i = y0; i <= y2; ++i,dest_addr+=mempitch)
+		for (int i = y0; i <= y2; ++i, dest_addr += mempitch)
 		{
 			left = xs, right = xe;
 
@@ -2401,7 +2401,7 @@ void Draw_Bottom_Tri(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int
 				right = clipRect->right;
 				if (left > clipRect->right)		// 端点在clip框外，跳过
 				{
-//					dest_addr += mempitch;
+					//					dest_addr += mempitch;
 					continue;
 				}
 			}
@@ -2410,13 +2410,13 @@ void Draw_Bottom_Tri(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int
 				left = clipRect->left;
 				if (right < clipRect->left)		// 端点在clip框外，跳过
 				{
-//					dest_addr += mempitch;
+					//					dest_addr += mempitch;
 					continue;
 				}
 			}
 			memset((UCHAR*)dest_addr + (unsigned int)left, color, (unsigned int)(right - left + 1));
 
-//			dest_addr += mempitch;		// for 循环中加过了
+			//			dest_addr += mempitch;		// for 循环中加过了
 		}
 
 	}
@@ -2531,12 +2531,12 @@ void Draw_Top_Tri(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2
 
 	}
 
-//	for (int i = y1; i > y0; --i)
-//	{
-//		Draw_Clip_Line8(default_clip_rect, xs + 0.5, i, xe + 0.5, i, color, dest_buffer, mempitch);
-//		xs -= dxy_left;
-//		xe -= dxy_right;
-//	}
+	//	for (int i = y1; i > y0; --i)
+	//	{
+	//		Draw_Clip_Line8(default_clip_rect, xs + 0.5, i, xe + 0.5, i, color, dest_buffer, mempitch);
+	//		xs -= dxy_left;
+	//		xe -= dxy_right;
+	//	}
 }
 
 // 任意一个三角形。顶点顺序逆时针发送。内部调整为：p0为顶点，p1为左边点，p2为右边点
@@ -2561,8 +2561,8 @@ void Draw_Triangle_2D(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, in
 		tmp = x0;
 		x0 = x1;
 		x1 = tmp;
-//		SwapInt(y1, y0);
-//		SwapInt(x1, x0);
+		//		SwapInt(y1, y0);
+		//		SwapInt(x1, x0);
 	}
 	else if (y2 < y1&&y2 < y0)	// y2是顶点，与0点交换
 	{
@@ -2573,8 +2573,8 @@ void Draw_Triangle_2D(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, in
 		tmp = x0;
 		x0 = x2;
 		x2 = tmp;
-//		SwapInt(y2, y0);
-//		SwapInt(x2, x0);
+		//		SwapInt(y2, y0);
+		//		SwapInt(x2, x0);
 	}
 
 	if (y2 < y1)		// 按y值排序
@@ -2592,7 +2592,7 @@ void Draw_Triangle_2D(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, in
 	// 检查是否全部在clip框外
 	if (y0 > clipRect->bottom ||												// 在clip框下面
 		(y1 < clipRect->top&&y2 < clipRect->top) ||							// 在clip框上面
-		(x0<clipRect->left&&x1<clipRect->left&&x2<clipRect->left) ||			// 在clip框左面
+		(x0 < clipRect->left&&x1 < clipRect->left&&x2 < clipRect->left) ||			// 在clip框左面
 		(x0 > clipRect->right&&x1 > clipRect->right&&x2 > clipRect->right)		// 在clip框右面
 		)
 	{
@@ -2610,41 +2610,41 @@ void Draw_Triangle_2D(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, in
 		Draw_Bottom_Tri(clipRect, x0, y0, x1, y1, x2, y2, color, dest_buffer, mempitch);
 		return;
 	}
-	
+
 	// 一般三角形，分割成两个三角形
 	// 设Ptemp为临时点，已经知道，Yt=y1,根据相似三角形得：
 	// Xt=(x0-x2)*(y1-y2)/(y0-y2)+x2
 	float new_x = x2 + (int)((float)(x0 - x2)*(float)(y1 - y2) / (float)(y0 - y2) + 0.5);
 
 	Draw_Bottom_Tri(clipRect, x0, y0, x1, y1, new_x, y1, color, dest_buffer, mempitch);	// P0,P1,Pt
-	Draw_Top_Tri(clipRect, x2, y2, new_x, y1, x1, y1,color,dest_buffer,mempitch);			// P2,Pt,P1
+	Draw_Top_Tri(clipRect, x2, y2, new_x, y1, x1, y1, color, dest_buffer, mempitch);			// P2,Pt,P1
 	return;
 }
 VERTEX2DF triPoints[] = { 300,400,300,100,100,200 };
 void Test_DrawTriangle_Main()
 {
-//	if (!KEYDOWN(VK_SPACE))
-//	{
-//		return;
-//	}
+	//	if (!KEYDOWN(VK_SPACE))
+	//	{
+	//		return;
+	//	}
 	DDraw_Fill_Surface(lpddsback, 0);
 	DDRAW_INIT_STRUCT(ddsd);
 	lpddsback->Lock(NULL, &ddsd, DDLOCK_WAIT | DDLOCK_SURFACEMEMORYPTR, NULL);
 
-	RECT clip = {270,190,370,290};
-//	int x0 = 200; 
-//	int y0 = 240;
-//	int x1 = 600;
-//	int y1 = 350;
-//	int x2 = 420;
-//	int y2 = 120;
+	RECT clip = { 270,190,370,290 };
+	//	int x0 = 200; 
+	//	int y0 = 240;
+	//	int x1 = 600;
+	//	int y1 = 350;
+	//	int x2 = 420;
+	//	int y2 = 120;
 	int x0 = rand() % SCREEN_WIDTH - 1;
 	int y0 = rand() % SCREEN_HEIGHT - 1;
 	int x1 = rand() % SCREEN_WIDTH - 1;
 	int y1 = rand() % SCREEN_HEIGHT - 1;
 	int x2 = rand() % SCREEN_WIDTH - 1;
 	int y2 = rand() % SCREEN_HEIGHT - 1;
-	Draw_Triangle_2D(&clip, x0,y0,x1,y1,x2,y2, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+	Draw_Triangle_2D(&clip, x0, y0, x1, y1, x2, y2, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
 
 
 	POLYGON2D clippoly;
@@ -2689,6 +2689,342 @@ void Test_DrawTriangle_Main()
 
 #pragma region demo_8_7/8,定点数函数
 
+void Draw_Top_TriFP(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR *dest_buffer, int mempitch)
+{
+	FIXPOINT dxy_right,
+		dxy_left,
+		xs, xe;
+		int height,
+		delta_hegith;
+	int tmp_x,
+		tmp_y,
+		right,
+		left;
+
+	UCHAR *dest_addr;
+
+	// 垂直的线，退出
+	if (y0 == y2 && y1 == y2)
+	{
+		return;
+	}
+
+	if (y1 != y2 && y1 != y0)		// p1是低点
+	{
+		tmp_x = x1;
+		tmp_y = y1;
+		x1 = x0;
+		y1 = y0;
+
+		x0 = tmp_x;
+		y0 = tmp_y;
+	}
+	else if (y2 != y1 && y2 != y0)
+	{
+		tmp_x = x2;
+		tmp_y = y2;
+		x2 = x0;
+		y2 = y0;
+
+		x0 = tmp_x;
+		y0 = tmp_y;
+	}
+
+	// 调换是的p1在右边，p2在左边,y值一样，不用换
+	if (x1 < x2)
+	{
+		tmp_x = x2;
+		x2 = x1;
+
+		x1 = tmp_x;
+	}
+
+	// 填充平底三角形
+	height = y2 - y0;
+	dxy_left = ((x2 - x0) << FIXP16_SHIFT) / height;
+	dxy_right = ((x1 - x0) << FIXP16_SHIFT) / height;
+	xs = x0 << FIXP16_SHIFT;
+	xe = x0 << FIXP16_SHIFT;
+
+	if (y0 > clipRect->bottom)
+	{
+		delta_hegith = y0 - clipRect->bottom;
+
+		xs -= dxy_left * delta_hegith;
+		xe -= dxy_right * delta_hegith;
+
+		y0 = clipRect->bottom;
+	}
+	if (y1 < clipRect->top)
+	{
+		y1 = y2 = clipRect->top;
+	}
+
+	// 计算起点行
+	dest_addr = dest_buffer + y0 * mempitch;
+
+	// 点都在clip框内
+	if (x0 > clipRect->left&&x0<clipRect->right&&
+		x1>clipRect->left&&x1<clipRect->right&&
+		x2>clipRect->left&&x2 < clipRect->right)
+	{
+		for (int i = y0; i >= y1; --i, dest_addr -= mempitch)
+		{
+
+			// xs和se都是定点数，要先转回成整数
+			memset((UCHAR*)dest_addr + ((xs + FIXP16_ROUND_UP) >> FIXP16_SHIFT), color, (((xe - xs + FIXP16_ROUND_UP) >> FIXP16_SHIFT) + 1));
+			xs -= dxy_left;
+			xe -= dxy_right;
+		}
+	}
+	else	// 有的点被clip掉了
+	{
+		for (int i = y0; i >= y1; --i, dest_addr -= mempitch)
+		{
+//			left = xs;
+//			right = xe;
+			left = FIXP_2_INT(xs);
+			right = FIXP_2_INT(xe);
+
+			xs -= dxy_left;
+			xe -= dxy_right;
+
+			if (left < clipRect->left)
+			{
+				left = clipRect->left;
+				if (right < clipRect->left)
+					continue;
+			}
+			if (right > clipRect->right)
+			{
+				right = clipRect->right;
+				if (left > clipRect->right)
+					continue;
+			}
+
+			memset((UCHAR*)dest_addr + (unsigned int)left, color, (unsigned int)(right - left + 1));
+		}
+
+	}
+
+}
+
+void Draw_Bottom_TriFP(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR *dest_buffer, int mempitch)
+{
+	FIXPOINT dxy_right, dxy_left,
+		xs, xe;
+//	int dxy_right,
+//		dxy_left,
+//	int xs, xe,
+	int height, delta_hegith;
+	int tmp_x,
+		tmp_y,
+		right,
+		left;
+
+	UCHAR *dest_addr;
+
+	if (y0 == y1 && y1 == y2)
+	{
+		return;
+	}
+
+	// 移动顶点，令p0点是顶点,p1p2是底边
+	// 并且，判断令p1点在左边，p2点在右边
+	if (y1 != y0 && y1 != y2)
+	{
+		tmp_y = y0;
+		tmp_x = x0;
+		y0 = y1;
+		x0 = x1;
+
+		y1 = tmp_y;
+		x1 = tmp_x;
+	}
+	else if (y2 != y0 && y2 != y1)
+	{
+		tmp_y = y0;
+		tmp_x = x0;
+
+		y0 = y2;
+		x0 = x2;
+
+		y2 = tmp_y;
+		x2 = tmp_x;
+	}
+	// 交换p1点和p2点 （y值是一样的，不用换）
+	if (x1 > x2)
+	{
+		tmp_x = x1;
+		x1 = x2;
+
+		x2 = tmp_x;
+	}
+
+	height = y1 - y0;
+
+	dxy_left = ((x1 - x0) << FIXP16_SHIFT) / height;
+	dxy_right = ((x2 - x0) << FIXP16_SHIFT) / height;
+
+	xs = INT_2_FIXP(x0);
+	xe = INT_2_FIXP(x0);
+
+	// 查看clip范围
+	if (y0 < clipRect->top)	// 顶点在clip框外，获取新的height和xs xe
+	{
+		delta_hegith = clipRect->top - y0;
+
+		xs += dxy_left * delta_hegith;		// 新起点和终点
+		xe += dxy_right * delta_hegith;
+
+		y0 = clipRect->top;
+	}
+
+
+	if (y1 > clipRect->bottom)				// 底边出了clip框
+	{
+		y1 = y2 = clipRect->bottom;
+	}
+
+	dest_addr = dest_buffer + y0 * mempitch;		// 计算内存的起点位置
+
+	// 开始clip水平扫描线，和画线
+
+	// 如果这个时候，点都在clip框内：
+	if (x0 > clipRect->left&&x0<clipRect->right&&
+		x1>clipRect->left&&x1<clipRect->right&&
+		x2>clipRect->left&&x2 < clipRect->right)
+	{
+		for (int i = y0; i <= y2; ++i, dest_addr += mempitch)		// !注意，是i<=y2 。之前没有加=号:(
+		{
+			memset((UCHAR*)dest_addr + ((xs + FIXP16_ROUND_UP) >> FIXP16_SHIFT), color, (((xe - xs) + FIXP16_ROUND_UP) >> FIXP16_SHIFT) + 1);
+
+			xs += dxy_left;
+			xe += dxy_right;
+		}
+	}
+	else  // 有的点不在clip框内
+	{
+		for (int i = y0; i <= y2; ++i, dest_addr += mempitch)
+		{
+			left = FIXP_2_INT(xs);
+			right = FIXP_2_INT(xe);
+
+			xs += dxy_left;
+			xe += dxy_right;
+
+			if (right > clipRect->right)
+			{
+				right = clipRect->right;
+				if (left > clipRect->right)		// 端点在clip框外，跳过
+				{
+					//					dest_addr += mempitch;
+					continue;
+				}
+			}
+			if (left < clipRect->left)
+			{
+				left = clipRect->left;
+				if (right < clipRect->left)		// 端点在clip框外，跳过
+				{
+					//					dest_addr += mempitch;
+					continue;
+				}
+			}
+			memset((UCHAR*)dest_addr + left, color, (right - left + 1));
+
+			//			dest_addr += mempitch;		// for 循环中加过了
+		}
+
+	}
+}
+
+void Draw_TriangleFP_2D(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR *dest_buffer, int mempitch)
+{
+	// 按y值排序 y0<y1<y2
+	int tmp;
+	// 是垂直的线或者是水平的线，返回
+	if ((x0 == x1 && x1 == x2) || (y0 == y1 && y1 == y2))
+	{
+		return;
+	}
+
+	if (y1 < y2&&y1 < y0)		// y1是顶点,与0点交换
+	{
+		tmp = y0;
+		y0 = y1;
+		y1 = tmp;
+
+		tmp = x0;
+		x0 = x1;
+		x1 = tmp;
+		//		SwapInt(y1, y0);
+		//		SwapInt(x1, x0);
+	}
+	else if (y2 < y1&&y2 < y0)	// y2是顶点，与0点交换
+	{
+		tmp = y0;
+		y0 = y2;
+		y2 = tmp;
+
+		tmp = x0;
+		x0 = x2;
+		x2 = tmp;
+		//		SwapInt(y2, y0);
+		//		SwapInt(x2, x0);
+	}
+
+	if (y2 < y1)		// 按y值排序
+	{
+		tmp = y1;
+		y1 = y2;
+		y2 = tmp;
+
+		tmp = x1;
+		x1 = x2;
+		x2 = tmp;
+	}
+
+
+	// 检查是否全部在clip框外
+	if (y0 > clipRect->bottom ||												// 在clip框下面
+		(y1 < clipRect->top&&y2 < clipRect->top) ||							// 在clip框上面
+		(x0 < clipRect->left&&x1 < clipRect->left&&x2 < clipRect->left) ||			// 在clip框左面
+		(x0 > clipRect->right&&x1 > clipRect->right&&x2 > clipRect->right)		// 在clip框右面
+		)
+	{
+		return;
+	}
+
+	if (y0 == y1 || y0 == y2)		// 是个平顶三角形
+	{
+		Draw_Top_TriFP(clipRect, x0, y0, x1, y1, x2, y2, color, dest_buffer, mempitch);
+		return;
+	}
+
+	if (y1 == y2)		// 是个平底三角形
+	{
+		Draw_Bottom_TriFP(clipRect, x0, y0, x1, y1, x2, y2, color, dest_buffer, mempitch);
+		return;
+	}
+
+	// 一般三角形，分割成两个三角形
+	// 设Ptemp为临时点，已经知道，Yt=y1,根据相似三角形得：
+	// Xt=(x0-x2)*(y1-y2)/(y0-y2)+x2
+	float new_x = x2 + (int)((float)(x0 - x2)*(float)(y1 - y2) / (float)(y0 - y2) + 0.5);
+
+	Draw_Bottom_TriFP(clipRect, x0, y0, x1, y1, new_x, y1, color, dest_buffer, mempitch);	// P0,P1,Pt
+	Draw_Top_TriFP(clipRect, x2, y2, new_x, y1, x1, y1, color, dest_buffer, mempitch);			// P2,Pt,P1
+	return;
+
+}
+
+inline void Draw_QuadFP_2D(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int x3, int y3, int color, UCHAR *dest_buffer, int mempitch)
+{
+	Draw_TriangleFP_2D(clipRect, x0, y0, x1, y1, x3, y3, color, dest_buffer, mempitch);
+	Draw_TriangleFP_2D(clipRect, x1, y1, x2, y2, x3, y3, color, dest_buffer, mempitch);
+}
+
 
 #pragma endregion
 
@@ -2707,24 +3043,25 @@ inline void Draw_Quad_2D(PRECT p_clipRect, int x0, int y0, int x1, int y1,
 
 void Test_DrawQuad_Main()
 {
-//	if (!KEYDOWN(VK_SPACE))
-//	{
-//		return;
-//	}
+	//	if (!KEYDOWN(VK_SPACE))
+	//	{
+	//		return;
+	//	}
 	DDraw_Fill_Surface(lpddsback, 0);
 	DDRAW_INIT_STRUCT(ddsd);
 	lpddsback->Lock(NULL, &ddsd, DDLOCK_WAIT | DDLOCK_SURFACEMEMORYPTR, NULL);
 
 	RECT clip = { 100,100,400,400 };
-//	int x0 = rand() % SCREEN_WIDTH;
-//	int y0 = rand() % SCREEN_HEIGHT;
-//	int width = 10 + rand() % 400;
-//	int height = 10 + rand() % 400;
+	//	int x0 = rand() % SCREEN_WIDTH;
+	//	int y0 = rand() % SCREEN_HEIGHT;
+	//	int width = 10 + rand() % 400;
+	//	int height = 10 + rand() % 400;
 	int x0 = 100;
 	int y0 = 100;
 	int width = 111;
 	int height = 10 + 100;
-	Draw_Quad_2D(&default_clip_rect, x0, y0, x0 + width, y0, x0 + width, y0 + height, x0, y0 + height, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+//	Draw_Quad_2D(&default_clip_rect, x0, y0, x0 + width, y0, x0 + width, y0 + height, x0, y0 + height, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+	Draw_QuadFP_2D(&default_clip_rect, x0, y0, x0 + width, y0, x0 + width, y0 + height, x0, y0 + height, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
 
 	lpddsback->Unlock(NULL);
 
@@ -3461,42 +3798,42 @@ void On_GameMain()
 	}
 
 	Test_DrawQuad_Main();
-//	Test_DrawTriangle_Main();
-	//	Test_matrix_Main();
-	//	Test_Draw_Polygon2D_Main();
-	//	Test_Draw_Mouse_Pixel_Blt_Main();
-	//	Test_Draw_Mouse_Pixel_Main();
-		//	Test_DrawClipLine_Main();
-			//		Test_DrawLine_Main();
-					//	Test_win_Main();
-					//	Test_dd_gdi_Main();
-					//	Test_light_256_Main();
-						//		Test_Sprite_Anim_Main();
-								//	switch (SCREEN_BPP)
-								//	{
-								//	case 8:
-						//				TestBitmap8Main();
-								//		break;
-								//	case 16:
-								//		TestBitMap16Main();
-								//		break;
-								//	case 24:	// 系统不支持24位。会补一个alpha，成32位。
-								////		TestBitMap24Main();
-								//		break;
-								//	case 32:
-								//		TestBitMap32Main();
-								//		break;
-								//	}
-									//	TestBitmapMain();
-										//	TestClipperHappyFace();
-											//	TestGameMainHappyFace();
-								//					TestBlitCopyOnPrimarySurface();
-									//				TestBlitCopy();
-											//		TestBlitFast();
-								//						TestBlit();
-											//			TestBackBuffer();
-													//	TestDoubleBuffering();
-								//						TestDrawPixels();
+	//	Test_DrawTriangle_Main();
+		//	Test_matrix_Main();
+		//	Test_Draw_Polygon2D_Main();
+		//	Test_Draw_Mouse_Pixel_Blt_Main();
+		//	Test_Draw_Mouse_Pixel_Main();
+			//	Test_DrawClipLine_Main();
+				//		Test_DrawLine_Main();
+						//	Test_win_Main();
+						//	Test_dd_gdi_Main();
+						//	Test_light_256_Main();
+							//		Test_Sprite_Anim_Main();
+									//	switch (SCREEN_BPP)
+									//	{
+									//	case 8:
+							//				TestBitmap8Main();
+									//		break;
+									//	case 16:
+									//		TestBitMap16Main();
+									//		break;
+									//	case 24:	// 系统不支持24位。会补一个alpha，成32位。
+									////		TestBitMap24Main();
+									//		break;
+									//	case 32:
+									//		TestBitMap32Main();
+									//		break;
+									//	}
+										//	TestBitmapMain();
+											//	TestClipperHappyFace();
+												//	TestGameMainHappyFace();
+									//					TestBlitCopyOnPrimarySurface();
+										//				TestBlitCopy();
+												//		TestBlitFast();
+									//						TestBlit();
+												//			TestBackBuffer();
+														//	TestDoubleBuffering();
+									//						TestDrawPixels();
 
 }
 
