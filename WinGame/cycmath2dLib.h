@@ -73,9 +73,9 @@ int Init_LookTable();
 // 平移多边形
 int Translate_Polygon2d(POLYGON2D_PTR polygon,int dx,int dy);
 
-// 旋转多边形（theta是角度）
+// 旋转多边形（theta是角度,为正值的时候顺时针转）
 int Rotate_Polygon2d(POLYGON2D_PTR polygon,int theta);
-// 旋转多边形（theta是角度）,查表
+// 旋转多边形（theta是角度,为正值的时候顺时针转）,查表
 int Rotate_Polygon2d_Fast(POLYGON2D_PTR polygon,int theta);
 
 // 缩放多边形
@@ -83,6 +83,7 @@ int Scale_Polygon2d(POLYGON2D_PTR poly, float s_x, float s_y);
 
 int Translate_Polygon2d_Mat(POLYGON2D_PTR poly, int dx, int dy);
 
+// 旋转多边形（theta是角度,为正值的时候顺时针转） 
 int Rotate_Polygon2d_Mat(POLYGON2D_PTR poly, int theta);
 
 int Scale_Polygon2d_Mat(POLYGON2D_PTR poly, float s_x,float s_y);

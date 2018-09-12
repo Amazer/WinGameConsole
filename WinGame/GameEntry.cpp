@@ -2694,7 +2694,7 @@ void Draw_Top_TriFP(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int 
 	FIXPOINT dxy_right,
 		dxy_left,
 		xs, xe;
-		int height,
+	int height,
 		delta_hegith;
 	int tmp_x,
 		tmp_y,
@@ -2781,8 +2781,8 @@ void Draw_Top_TriFP(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int 
 	{
 		for (int i = y0; i >= y1; --i, dest_addr -= mempitch)
 		{
-//			left = xs;
-//			right = xe;
+			//			left = xs;
+			//			right = xe;
 			left = FIXP_2_INT(xs);
 			right = FIXP_2_INT(xe);
 
@@ -2813,9 +2813,9 @@ void Draw_Bottom_TriFP(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, i
 {
 	FIXPOINT dxy_right, dxy_left,
 		xs, xe;
-//	int dxy_right,
-//		dxy_left,
-//	int xs, xe,
+	//	int dxy_right,
+	//		dxy_left,
+	//	int xs, xe,
 	int height, delta_hegith;
 	int tmp_x,
 		tmp_y,
@@ -3060,7 +3060,7 @@ void Test_DrawQuad_Main()
 	int y0 = 100;
 	int width = 111;
 	int height = 10 + 100;
-//	Draw_Quad_2D(&default_clip_rect, x0, y0, x0 + width, y0, x0 + width, y0 + height, x0, y0 + height, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+	//	Draw_Quad_2D(&default_clip_rect, x0, y0, x0 + width, y0, x0 + width, y0 + height, x0, y0 + height, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
 	Draw_QuadFP_2D(&default_clip_rect, x0, y0, x0 + width, y0, x0 + width, y0 + height, x0, y0 + height, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
 
 	lpddsback->Unlock(NULL);
@@ -3070,6 +3070,237 @@ void Test_DrawQuad_Main()
 }
 
 #pragma endregion
+
+#pragma region demo_8_9,多边形的光栅化
+
+// 填充多边形
+void Draw_Filled_Polygon2D(PRECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, int mempitch)
+{
+	int startIndex, startY;
+	int endIndex, endY;
+
+	// 找到起点index
+	startIndex = 0;
+	startY = poly->vlist[0].y + poly->y0;;
+
+	// 找到了最大的y值
+	endIndex = 0;
+	endY = poly->vlist[0].y + poly->y0;
+
+	int tmp;
+
+
+	for (int i = 1; i < poly->num_verts; ++i)
+	{
+		tmp = poly->vlist[i].y + poly->y0;
+		if (tmp < startY)
+		{
+			startIndex = i;
+			startY = tmp;
+		}
+
+		if (tmp > endY)
+		{
+			endIndex = i;
+			endY = tmp;
+		}
+	}
+
+	int edgeCount = poly->num_verts;
+
+	// 左右两条扫描线，但是现在先不区分左右。
+	int start1Index = startIndex;
+	int start2Index = startIndex;
+	// 1线和2线上的点，作为起点和终点
+	float x1, x2;
+	int y1end;
+	int y2end;
+	float x1end, x2end;
+
+	int x1Error = 0, x2Error = 0;
+
+	x1 = x2 = poly->vlist[startIndex].x + poly->x0;
+	y1end = y2end = (poly->vlist[startIndex].y + poly->y0);
+
+	UCHAR *dest_buff;
+	dest_buff = vbuffer + startY * mempitch;
+
+	// 试着画一条扫描线：
+	float dxy1, dxy2;		// 每移动单位y,x的变换距离
+
+	// 开始画扫描线
+	while (edgeCount > 0 )
+	{
+		// 找1线，直到找到合适的
+		while (edgeCount > 0 && (x1Error || startY >= y1end))
+		{
+			int pointIndex = start1Index - 1;
+			if (pointIndex < 0)
+			{
+				pointIndex = poly->num_verts - 1;
+			}
+			edgeCount--;
+			float height = poly->vlist[pointIndex].y - poly->vlist[start1Index].y;
+			if (height == 0)	// 是水平线,y值一样
+			{
+				x1 = poly->vlist[pointIndex].x + poly->x0;
+				start1Index = pointIndex;
+				continue;		// 继续寻找合适的水平线
+			}
+			else  // 形成了一条斜线
+			{
+				dxy1 = (float)((poly->vlist[pointIndex].x - poly->vlist[start1Index].x)) / height;
+
+				x1 = poly->vlist[start1Index].x + poly->x0;		// 将x1置回到线的起点
+				y1end = poly->vlist[pointIndex].y + poly->y0;
+				x1end = poly->vlist[pointIndex].x + poly->x0;
+
+				start1Index = pointIndex;
+				break;	// 找到合适的线了，break
+			}
+		}
+
+		// 找到2线，直到找到合适的
+		while (edgeCount > 0 && (x2Error || startY >= y2end))
+		{
+			int pointIndex = start2Index + 1;
+			if (pointIndex >= poly->num_verts)
+			{
+				pointIndex = 0;
+			}
+			edgeCount--;
+			float height = poly->vlist[pointIndex].y - poly->vlist[start2Index].y;
+			if (height == 0)	// 是水平线
+			{
+				x2 = poly->vlist[pointIndex].x + poly->x0;
+				start2Index = pointIndex;
+				continue;		// 继续寻找合适的水平线
+			}
+			else  // 形成了一条斜线
+			{
+				dxy2 = ((float)(poly->vlist[pointIndex].x - poly->vlist[start2Index].x)) / height;
+
+				x2 = poly->vlist[start2Index].x + poly->x0;
+				y2end = poly->vlist[pointIndex].y + poly->y0;
+				x2end = poly->vlist[pointIndex].x + poly->x0;
+
+				start2Index = pointIndex;
+				break;	// 找到合适的线了，break
+			}
+		}
+
+		// 要画线啦！
+
+		x1Error = 0;
+		x2Error = 0;
+		// 只要不到拐点，就一直向下画线
+		// 注意，不要等于号。 等于线当做下一边的开始。(最后的结束的交点会不会少一条线？)
+		while (startY < y1end && startY < y2end)
+		{
+			if (x1 < x2)
+			{
+				memset(dest_buff + (int)x1, poly->color, (int)(x2 - x1 + 1));
+			}
+			else
+			{
+				memset(dest_buff + (int)x2, poly->color, (int)(x1 - x2 + 1));
+			}
+			dest_buff += mempitch;
+			x1 += dxy1;
+			x2 += dxy2;
+			startY++;		// y下移一格
+
+			// 判断扫描线的x是否超过了线的终点。（由于斜率比较大导致的)
+			if (dxy1 > 0)	// 增加的
+			{
+				if (x1 > x1end)
+				{
+					x1 = x1end;
+					x1Error = 1;
+				}
+			}
+			else if (dxy1 < 0)
+			{
+				if (x1 < x1end)
+				{
+					x1 = x1end;
+					x1Error = 1;
+				}
+			}
+
+			if (dxy2 > 0)
+			{
+				if (x2 > x2end)
+				{
+					x2 = x2end;
+					x2Error = 1;
+				}
+			}
+			else if (dxy2 < 0)
+			{
+				if (x2 < x2end)
+				{
+					x2 = x2end;
+					x2Error = 1;
+				}
+			}
+			if (x1Error || x2Error)
+			{
+				break;
+			}
+		}
+	}
+}
+
+POLYGON2D fillPoly;
+void Test_FillPolygon_Init()
+{
+	fillPoly.color = 255;
+	fillPoly.state = 1;
+	fillPoly.x0 = 200;
+	fillPoly.y0 = 200;
+
+	fillPoly.num_verts = 4;
+	fillPoly.vlist = new VERTEX2DF[4];
+	fillPoly.vlist[0].x = -50;
+	fillPoly.vlist[0].y = -50;
+
+	fillPoly.vlist[1].x = 101;
+	fillPoly.vlist[1].y = -50;
+
+	fillPoly.vlist[2].x = 101;
+	fillPoly.vlist[2].y = 101;
+
+	fillPoly.vlist[3].x = -50;
+	fillPoly.vlist[3].y = 101;
+
+//	Rotate_Polygon2d_Mat(&fillPoly, 2);
+
+//	fillPoly.num_verts = 11;
+//	fillPoly.vlist = ship_vertexs;
+
+}
+void Test_FillPolygon_Main()
+{
+	DDraw_Fill_Surface(lpddsback, 0);
+	DDRAW_INIT_STRUCT(ddsd);
+	lpddsback->Lock(NULL, &ddsd, DDLOCK_WAIT | DDLOCK_SURFACEMEMORYPTR, NULL);
+
+	fillPoly.color = 255;
+	Draw_Filled_Polygon2D(&default_clip_rect, &fillPoly, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+
+	fillPoly.color = 220;
+	Draw_Polygon2D(default_clip_rect, &fillPoly, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+
+	Rotate_Polygon2d_Mat(&fillPoly, 1);
+
+	lpddsback->Unlock(NULL);
+
+	while (lpddsprimary->Flip(NULL, DDFLIP_WAIT));
+
+}
+#pragma endregion
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
 	WNDCLASSEX wclass;
@@ -3087,7 +3318,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	wclass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
 
 	// 不显示鼠标
-	ShowCursor(false);
+//	ShowCursor(false);
 
 	RegisterClassEx(&wclass);
 	HWND hwnd;
@@ -3757,6 +3988,7 @@ void TestDraw(HWND hwnd)
 }
 void On_GameInit()
 {
+	Test_FillPolygon_Init();
 	//	Test_matrix_Init();
 	//	Test_Draw_Polygon_Init();
 		//	Test_DrawLine_Init();
@@ -3797,7 +4029,8 @@ void On_GameMain()
 		mouseDown = false;
 	}
 
-	Test_DrawQuad_Main();
+	Test_FillPolygon_Main();
+//	Test_DrawQuad_Main();
 	//	Test_DrawTriangle_Main();
 		//	Test_matrix_Main();
 		//	Test_Draw_Polygon2D_Main();
