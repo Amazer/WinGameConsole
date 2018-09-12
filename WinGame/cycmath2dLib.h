@@ -13,6 +13,7 @@ static float cos_look[360];
 static float sin_look[360];
 
 
+#pragma region 2d type
 // 2d点类型(顶点)
 typedef struct VERTEX2DI_TYP
 {
@@ -39,6 +40,9 @@ typedef struct POLYGON2D_TYP
 
 } POLYGON2D,*POLYGON2D_PTR;
 
+#pragma endregion 2d type
+
+#pragma region matrix type
 // 3x3矩阵
 typedef struct MATRIX3X3_TYP
 {
@@ -68,8 +72,14 @@ typedef struct MATRIX3X2_TYP
 
 }MATRIX3X2,*MATRIX3X2_PTR;
 
+#pragma endregion matrix type
+
+////////////////////////////////////// 函数部分///////////////////////////
+
+// 初始化cos sin 表
 int Init_LookTable();
 
+#pragma region poly  functions
 // 平移多边形
 int Translate_Polygon2d(POLYGON2D_PTR polygon,int dx,int dy);
 
@@ -88,7 +98,10 @@ int Rotate_Polygon2d_Mat(POLYGON2D_PTR poly, int theta);
 
 int Scale_Polygon2d_Mat(POLYGON2D_PTR poly, float s_x,float s_y);
 
+#pragma endregion poly functions
 
+
+#pragma region matrix functions
 // ------矩阵运算
 inline int Mat_Init_1X2(MATRIX1X2_PTR mat, float x, float y);
 
@@ -102,9 +115,6 @@ int Mat_Mul_1X3_3X3(MATRIX1X3_PTR ma, MATRIX3X3_PTR mb, MATRIX1X3_PTR mprod);
 int Mat_Mul_1X2_3X2(MATRIX1X2_PTR ma, MATRIX3X2_PTR mb, MATRIX1X2_PTR mprod);
 
 // ------矩阵运算   end
-
-
-inline int SwapInt(int &a, int &b);
-inline int SwapFloat(float &a, float &b);
+#pragma endregion matrix functions
 
 #endif
