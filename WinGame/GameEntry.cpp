@@ -2180,7 +2180,7 @@ void Test_Draw_Polygon2D_Main()
 
 	lpddsback->Unlock(NULL);
 
-	while (lpddsprimary->Flip(NULL, DDFLIP_WAIT));
+	while (FAILED(lpddsprimary->Flip(NULL, DDFLIP_WAIT)));
 
 }
 void Test_Draw_Mouse_Pixel_Main()
@@ -2197,11 +2197,10 @@ void Test_Draw_Mouse_Pixel_Main()
 		Draw_Line8(lastMousePoint.x, lastMousePoint.y, mousePoint.x, mousePoint.y, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
 		//		Draw_Clip_Line8(default_clip_rect, lastMousePoint.x, lastMousePoint.y, mousePoint.x, mousePoint.y, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
 		//		Plot8(mousePoint.x, mousePoint.y, rand() % 256, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
-	}
 
 	lpddsback->Unlock(NULL);
 
-	while (lpddsprimary->Flip(NULL, DDFLIP_WAIT));
+	while (FAILED(lpddsprimary->Flip(NULL, DDFLIP_WAIT)));
 
 }
 
@@ -3251,6 +3250,26 @@ void Draw_Filled_Polygon2D(PRECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, i
 		}
 	}
 }
+int VDebugPrintF(const char* format, va_list argList)
+{
+	const int MAX_CHARS = 1023;
+	static char s_buffer[MAX_CHARS+1];
+	s_buffer[MAX_CHARS] = '\0';
+
+	int charsWritten =
+		vsnprintf(s_buffer, MAX_CHARS, format, argList);
+	OutputDebugString(s_buffer);
+	return charsWritten;
+}
+
+int DebugPrintF(const char * format, ...)
+{
+	va_list argList;
+	va_start(argList, format);
+	int charsWritten = VDebugPrintF(format, argList);
+	va_end(argList);
+	return charsWritten;
+}
 
 POLYGON2D fillPoly;
 void Test_FillPolygon_Init()
@@ -3282,6 +3301,7 @@ void Test_FillPolygon_Init()
 }
 void Test_FillPolygon_Main()
 {
+//	DebugPrintF(" print log by cyc %s","aaaa");
 	DDraw_Fill_Surface(lpddsback, 0);
 	DDRAW_INIT_STRUCT(ddsd);
 	lpddsback->Lock(NULL, &ddsd, DDLOCK_WAIT | DDLOCK_SURFACEMEMORYPTR, NULL);
@@ -3296,10 +3316,56 @@ void Test_FillPolygon_Main()
 
 	lpddsback->Unlock(NULL);
 
-	while (lpddsprimary->Flip(NULL, DDFLIP_WAIT));
+	while (FAILED(lpddsprimary->Flip(NULL, DDFLIP_WAIT)));
+
 
 }
 #pragma endregion
+
+#pragma region chapter8, 多边形碰撞检测
+// 快速计算<x,y>到<0,0>的距离。使用了泰勒展开式。（没有明白）
+int Fast_Distance_2D(int x, int y)
+{
+	x = abs(x);
+	y = abs(y);
+	int min = MIN(x, y);
+
+	// 这一步没有明白。min是为什么？怎么用的泰勒级数？
+	return (x + y - (min >> 1) - (min >> 2) + (min >> 4));
+}
+
+int Find_Bounding_Box_Poly2D(POLYGON2D_PTR poly, BOUND2DF_PTR bound)
+{
+	bound->max_x = bound->max_y = bound->min_x = bound->min_y = 0;
+	if (poly->num_verts <= 0)
+	{
+		return 0;
+	}
+	for (int i = 0; i < poly->num_verts; ++i)
+	{
+		if (poly->vlist[i].x < bound->min_x)
+		{
+			bound->min_x = poly->vlist[i].x;
+		}
+		if (poly->vlist[i].x > bound->max_x)
+		{
+			bound->max_x = poly->vlist[i].x;
+		}
+
+		if (poly->vlist[i].y < bound->min_y)
+		{
+			bound->min_y = poly->vlist[i].y;
+		}
+		if (poly->vlist[i].y > bound->max_y)
+		{
+			bound->max_y = poly->vlist[i].y;
+		}
+	}
+	return 1;
+}
+
+
+#pragma endregion chapter8, 多边形碰撞检测
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
@@ -3399,6 +3465,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
+		// 锁帧方式4
+//		CTime::Start_Clock();
+//		Game_Main();
+//		CTime::Wait_Clock(MS_PER_FRAME);
+
 
 		//			Game_Main();
 
@@ -3409,10 +3480,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			start_time = GetTickCount();
 
 			Game_Main();
+
+
 		}
 		else
 		{
-
+			Sleep(1);
 			DWORD delta = GetTickCount() - start_time;
 			if (delta >= MS_PER_FRAME)
 			{
@@ -3505,6 +3578,10 @@ int Game_Main(void *params, int num_parms)
 		is_window_closed = 1;
 	}
 	On_GameMain();
+
+	// 等待垂直空白结束
+
+	lpdd->WaitForVerticalBlank(DDWAITVB_BLOCKEND, NULL);
 	return 1;
 }
 int Game_Init(void *params, int num_parms)

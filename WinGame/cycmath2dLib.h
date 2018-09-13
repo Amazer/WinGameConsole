@@ -4,6 +4,10 @@
 
 #include "cycTypeLib.h"
 
+#define MIN(a,b) ((a<b)?a:b)
+#define MAX(a,b) ((a>b)?a:b)
+#define SWAP(a,b,t) {t=a;a=b;b=t;}
+
 //const double PI = 3.141592653;
 const double PI = 3.1415926535;
 const double DEG2RAD = 0.0175;			// 1度等于多少弧度
@@ -19,14 +23,14 @@ typedef struct VERTEX2DI_TYP
 {
 	int x, y;		// 顶点
 
-}VERTEX2DI,*VERTEX2DI_PTR;
+}VERTEX2DI, *VERTEX2DI_PTR;
 
 // 2d点类型(顶点)
 typedef struct VERTEX2DF_TYP
 {
 	float x, y;		// 顶点
 
-}VERTEX2DF,*VERTEX2DF_PTR;
+}VERTEX2DF, *VERTEX2DF_PTR;
 
 // 2d多边形定义
 typedef struct POLYGON2D_TYP
@@ -38,7 +42,14 @@ typedef struct POLYGON2D_TYP
 	UDWORD color;					// 多边形颜色. 可以是index or palettentry
 	VERTEX2DF *vlist;				// 顶点列表
 
-} POLYGON2D,*POLYGON2D_PTR;
+} POLYGON2D, *POLYGON2D_PTR;
+
+// 边界类型
+typedef struct BOUND2DF_TYP
+{
+	float min_x, min_y;
+	float max_x, max_y;
+}BOUND2DF, *BOUND2DF_PTR;
 
 #pragma endregion 2d type
 
@@ -48,7 +59,7 @@ typedef struct MATRIX3X3_TYP
 {
 	float M[3][3];
 
-}MATRIX3X3,*MATRIX3X3_PTR;
+}MATRIX3X3, *MATRIX3X3_PTR;
 
 
 // 1x3矩阵
@@ -56,21 +67,21 @@ typedef struct MATRIX1X3_TYP
 {
 	float M[3];
 
-}MATRIX1X3,*MATRIX1X3_PTR;
+}MATRIX1X3, *MATRIX1X3_PTR;
 
 // 1x2矩阵
 typedef struct MATRIX1X2_TYP
 {
 	float M[2];
 
-}MATRIX1X2,*MATRIX1X2_PTR;
+}MATRIX1X2, *MATRIX1X2_PTR;
 
 // 3x2矩阵
 typedef struct MATRIX3X2_TYP
 {
 	float M[3][2];
 
-}MATRIX3X2,*MATRIX3X2_PTR;
+}MATRIX3X2, *MATRIX3X2_PTR;
 
 #pragma endregion matrix type
 
@@ -81,12 +92,12 @@ int Init_LookTable();
 
 #pragma region poly  functions
 // 平移多边形
-int Translate_Polygon2d(POLYGON2D_PTR polygon,int dx,int dy);
+int Translate_Polygon2d(POLYGON2D_PTR polygon, int dx, int dy);
 
 // 旋转多边形（theta是角度,为正值的时候顺时针转）
-int Rotate_Polygon2d(POLYGON2D_PTR polygon,int theta);
+int Rotate_Polygon2d(POLYGON2D_PTR polygon, int theta);
 // 旋转多边形（theta是角度,为正值的时候顺时针转）,查表
-int Rotate_Polygon2d_Fast(POLYGON2D_PTR polygon,int theta);
+int Rotate_Polygon2d_Fast(POLYGON2D_PTR polygon, int theta);
 
 // 缩放多边形
 int Scale_Polygon2d(POLYGON2D_PTR poly, float s_x, float s_y);
@@ -96,7 +107,7 @@ int Translate_Polygon2d_Mat(POLYGON2D_PTR poly, int dx, int dy);
 // 旋转多边形（theta是角度,为正值的时候顺时针转） 
 int Rotate_Polygon2d_Mat(POLYGON2D_PTR poly, int theta);
 
-int Scale_Polygon2d_Mat(POLYGON2D_PTR poly, float s_x,float s_y);
+int Scale_Polygon2d_Mat(POLYGON2D_PTR poly, float s_x, float s_y);
 
 #pragma endregion poly functions
 

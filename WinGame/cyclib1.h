@@ -25,7 +25,7 @@ typedef int FIXPOINT;				// 定点数
 #define WIN_OFFSCREEN_HEIGHT 720	//480 		
 
 #define SCREEN_BPP 8			// 色彩位深  窗口模式不起作用
-#define MS_PER_FRAME 15			// 每帧毫秒数
+#define MS_PER_FRAME 33			// 每帧毫秒数
 
 #define FULL_SCREEN_MODE 1			
 
