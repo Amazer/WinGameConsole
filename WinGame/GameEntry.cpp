@@ -2198,10 +2198,11 @@ void Test_Draw_Mouse_Pixel_Main()
 		//		Draw_Clip_Line8(default_clip_rect, lastMousePoint.x, lastMousePoint.y, mousePoint.x, mousePoint.y, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
 		//		Plot8(mousePoint.x, mousePoint.y, rand() % 256, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
 
-	lpddsback->Unlock(NULL);
+		lpddsback->Unlock(NULL);
 
-	while (FAILED(lpddsprimary->Flip(NULL, DDFLIP_WAIT)));
+		while (FAILED(lpddsprimary->Flip(NULL, DDFLIP_WAIT)));
 
+	}
 }
 
 void Test_Draw_Mouse_Pixel_Blt_Main()
@@ -3128,7 +3129,7 @@ void Draw_Filled_Polygon2D(PRECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, i
 	float dxy1, dxy2;		// 每移动单位y,x的变换距离
 
 	// 开始画扫描线
-	while (edgeCount > 0 )
+	while (edgeCount > 0)
 	{
 		// 找1线，直到找到合适的
 		while (edgeCount > 0 && (x1Error || startY >= y1end))
@@ -3253,7 +3254,7 @@ void Draw_Filled_Polygon2D(PRECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, i
 int VDebugPrintF(const char* format, va_list argList)
 {
 	const int MAX_CHARS = 1023;
-	static char s_buffer[MAX_CHARS+1];
+	static char s_buffer[MAX_CHARS + 1];
 	s_buffer[MAX_CHARS] = '\0';
 
 	int charsWritten =
@@ -3293,15 +3294,15 @@ void Test_FillPolygon_Init()
 	fillPoly.vlist[3].x = -50;
 	fillPoly.vlist[3].y = 101;
 
-//	Rotate_Polygon2d_Mat(&fillPoly, 2);
+	//	Rotate_Polygon2d_Mat(&fillPoly, 2);
 
-//	fillPoly.num_verts = 11;
-//	fillPoly.vlist = ship_vertexs;
+	//	fillPoly.num_verts = 11;
+	//	fillPoly.vlist = ship_vertexs;
 
 }
 void Test_FillPolygon_Main()
 {
-//	DebugPrintF(" print log by cyc %s","aaaa");
+	//	DebugPrintF(" print log by cyc %s","aaaa");
 	DDraw_Fill_Surface(lpddsback, 0);
 	DDRAW_INIT_STRUCT(ddsd);
 	lpddsback->Lock(NULL, &ddsd, DDLOCK_WAIT | DDLOCK_SURFACEMEMORYPTR, NULL);
@@ -4107,43 +4108,43 @@ void On_GameMain()
 	}
 
 	Test_FillPolygon_Main();
-//	Test_DrawQuad_Main();
-	//	Test_DrawTriangle_Main();
-		//	Test_matrix_Main();
-		//	Test_Draw_Polygon2D_Main();
-		//	Test_Draw_Mouse_Pixel_Blt_Main();
-		//	Test_Draw_Mouse_Pixel_Main();
-			//	Test_DrawClipLine_Main();
-				//		Test_DrawLine_Main();
-						//	Test_win_Main();
-						//	Test_dd_gdi_Main();
-						//	Test_light_256_Main();
-							//		Test_Sprite_Anim_Main();
-									//	switch (SCREEN_BPP)
-									//	{
-									//	case 8:
-							//				TestBitmap8Main();
-									//		break;
-									//	case 16:
-									//		TestBitMap16Main();
-									//		break;
-									//	case 24:	// 系统不支持24位。会补一个alpha，成32位。
-									////		TestBitMap24Main();
-									//		break;
-									//	case 32:
-									//		TestBitMap32Main();
-									//		break;
-									//	}
-										//	TestBitmapMain();
-											//	TestClipperHappyFace();
-												//	TestGameMainHappyFace();
-									//					TestBlitCopyOnPrimarySurface();
-										//				TestBlitCopy();
-												//		TestBlitFast();
-									//						TestBlit();
-												//			TestBackBuffer();
-														//	TestDoubleBuffering();
-									//						TestDrawPixels();
+	//	Test_DrawQuad_Main();
+		//	Test_DrawTriangle_Main();
+			//	Test_matrix_Main();
+			//	Test_Draw_Polygon2D_Main();
+			//	Test_Draw_Mouse_Pixel_Blt_Main();
+			//	Test_Draw_Mouse_Pixel_Main();
+				//	Test_DrawClipLine_Main();
+					//		Test_DrawLine_Main();
+							//	Test_win_Main();
+							//	Test_dd_gdi_Main();
+							//	Test_light_256_Main();
+								//		Test_Sprite_Anim_Main();
+										//	switch (SCREEN_BPP)
+										//	{
+										//	case 8:
+								//				TestBitmap8Main();
+										//		break;
+										//	case 16:
+										//		TestBitMap16Main();
+										//		break;
+										//	case 24:	// 系统不支持24位。会补一个alpha，成32位。
+										////		TestBitMap24Main();
+										//		break;
+										//	case 32:
+										//		TestBitMap32Main();
+										//		break;
+										//	}
+											//	TestBitmapMain();
+												//	TestClipperHappyFace();
+													//	TestGameMainHappyFace();
+										//					TestBlitCopyOnPrimarySurface();
+											//				TestBlitCopy();
+													//		TestBlitFast();
+										//						TestBlit();
+													//			TestBackBuffer();
+															//	TestDoubleBuffering();
+										//						TestDrawPixels();
 
 }
 
