@@ -257,6 +257,8 @@ int Init_LookTable();
 // 初始化ddraw
 int DDraw_Init(int width, int height, int bpp, int windowed);
 int DDraw_ShutDown();
+int DDraw_CheckWinClient();
+int DDraw_Flip(void);
 int DDraw_Clipper_Init();
 int DDraw_Fill_Surface(LPDIRECTDRAWSURFACE7 lpdds, int color);
 int DDraw_Draw_Surface(LPDIRECTDRAWSURFACE7 source, int x, int y, int width, int height, LPDIRECTDRAWSURFACE7 dest, int transparent = 1, float scale = 1.0f);
@@ -386,9 +388,13 @@ extern int screen_height;
 extern int screen_bpp;
 extern int screen_windowed;
 
+extern int win_client_x0;
+extern int win_client_y0;
+
 extern int dd_pixel_format;
 
-extern RECT window_client_rect;						// 窗口模式的用户区域
+extern RECT client_rect;							// 用户区域
+extern RECT win_client_rect;						// 窗口模式的用户区域
 
 extern float cos_look[361];
 extern float sin_look[361];

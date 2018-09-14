@@ -16,8 +16,8 @@ int GameEntry::Game_Init()
 	poly.state = 1;
 	poly.color = 255;
 	poly.num_verts = 3;
-	poly.x0 = 100;
-	poly.y0 = 100;
+	poly.x0 = 400;
+	poly.y0 = 400;
 	poly.vlist = new VERTEX2DF[3];
 	poly.vlist[0].x = 0;
 	poly.vlist[0].y = 0;
@@ -41,7 +41,7 @@ int GameEntry::Game_Main()
 
 	lpddsback->Unlock(NULL);
 
-	lpddsprimary->Flip(NULL, DDFLIP_WAIT);
+	DDraw_Flip();
 	return 0;
 }
 

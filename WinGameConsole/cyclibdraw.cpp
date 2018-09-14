@@ -62,7 +62,12 @@ int screen_windowed = 0;
 
 int dd_pixel_format = DD_PIXEL_FORMATALPHA888;
 
-RECT window_client_rect;						// 窗口模式的用户区域
+int win_client_x0 = 0;
+int win_client_y0 = 0;
+
+RECT win_client_rect;						// 窗口模式的用户区域
+
+RECT client_rect;							// 用户区域
 
 
 USHORT(*RGB16Bit)(int r, int g, int b) = NULL;
@@ -2066,7 +2071,7 @@ int DDraw_Init(int width, int height, int bpp, int windowed)
 	screen_bpp = bpp;
 
 	default_clipRect = { 0,0,screen_width - 1,screen_height - 1 };
-	window_client_rect = { 0,0,screen_width - 1,screen_height - 1 };
+	win_client_rect = client_rect = { 0,0,screen_width ,screen_height };;
 
 	if (FAILED(DirectDrawCreateEx(NULL, (void **)&lpdd, IID_IDirectDraw7, NULL)))
 	{
@@ -2231,10 +2236,34 @@ int DDraw_ShutDown()
 	return 1;
 }
 
+int DDraw_Flip(void)
+{
+	if (primary_buffer || back_buffer)
+		return 0;
+	if (!screen_windowed)
+	{
+		while (FAILED(lpddsprimary->Flip(NULL, DDFLIP_WAIT)));
+	}
+	else
+	{
+		if (FAILED(lpddsprimary->Blt(&win_client_rect, lpddsback, NULL, DDBLT_WAIT, NULL)))
+			return 0;
+	}
+	return 1;
+}
+
+int DDraw_CheckWinClient()
+{
+	if (!screen_windowed)
+		return 0;
+	GetWindowRect(main_window_handle, &win_client_rect);
+	return 1;
+}
+
 // 窗口模式设置lpddsprimary裁剪器
 int DDraw_Clipper_Init()
 {
-	lpddclipper = DDraw_Attach_Clipper(lpddsback, 1, &default_clipRect);
+	lpddclipper = DDraw_Attach_Clipper(lpddsback, 1, &client_rect);
 	if (screen_windowed)
 	{
 		if (FAILED(lpdd->CreateClipper(0, &lpddclipperwin, NULL)))

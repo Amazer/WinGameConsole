@@ -13,8 +13,8 @@
 #define WNDNAME "EngineEntry"
 
 // window创建相关
-#define SCREEN_WIDTH 1280	//640		// 屏幕宽度   窗口模式,不设置display mode,使用系统的色彩位深
-#define SCREEN_HEIGHT 720	//480 		// 屏幕高度   
+#define SCREEN_WIDTH 640	//640		// 屏幕宽度   窗口模式,不设置display mode,使用系统的色彩位深
+#define SCREEN_HEIGHT 480	//480 		// 屏幕高度   
 
 #define FULL_SCREEN_MODE 1		// 是否为全屏模式
 
@@ -115,12 +115,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	main_window_handle = hwnd;
 	if (!FULL_SCREEN_MODE)
 	{
-		RECT window_dect = { 0,0,SCREEN_WIDTH - 1,SCREEN_HEIGHT - 1 };
-		AdjustWindowRectEx(&window_dect,
+		RECT window_rect = { 0,0,SCREEN_WIDTH - 1,SCREEN_HEIGHT - 1 };
+		AdjustWindowRectEx(&window_rect,
 			GetWindowStyle(main_window_handle),
 			GetMenu(main_window_handle) != NULL,
 			GetWindowExStyle(main_window_handle));
-		MoveWindow(main_window_handle, 0, 0, window_dect.right - window_dect.left, window_dect.bottom - window_dect.top, FALSE);
+		win_client_x0 = -window_rect.left;
+		win_client_y0 = -window_rect.top;
+		MoveWindow(main_window_handle, 0, 0, window_rect.right - window_rect.left, window_rect.bottom - window_rect.top, FALSE);
 
 		ShowWindow(main_window_handle, SW_SHOW);
 	}
@@ -203,7 +205,9 @@ void On_GameInit()
 }
 void On_GameMain()
 {
+	DDraw_CheckWinClient();
 	GameEntry::Game_Main();
+
 }
 void On_GameExit()
 {
