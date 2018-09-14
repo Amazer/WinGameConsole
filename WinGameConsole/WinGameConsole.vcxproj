@@ -122,10 +122,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="cyclibdraw.cpp" />
+    <ClCompile Include="GameEntry.cpp" />
     <ClCompile Include="game_console.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cyclibdraw.h" />
+    <ClInclude Include="GameEntry.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -7,6 +7,7 @@
 #include <math.h>
 
 #include "cyclibdraw.h"
+#include "GameEntry.h"
 
 #define WINCLASSNAME "WINCLASS1"
 #define WNDNAME "EngineEntry"
@@ -15,9 +16,9 @@
 #define SCREEN_WIDTH 1280	//640		// 屏幕宽度   窗口模式,不设置display mode,使用系统的色彩位深
 #define SCREEN_HEIGHT 720	//480 		// 屏幕高度   
 
-#define FULL_SCREEN_MODE 0		// 是否为全屏模式
+#define FULL_SCREEN_MODE 1		// 是否为全屏模式
 
-#define SCREEN_BPP 32			// 色彩位深  窗口模式不起作用
+#define SCREEN_BPP 8			// 色彩位深  窗口模式不起作用
 
 HWND main_window_handle = NULL;
 HINSTANCE main_instance = NULL;
@@ -198,13 +199,15 @@ int Game_Main(void *params, int num_parms)
 void On_GameInit()
 {
 	Init_LookTable();
+	GameEntry::Game_Init();
 }
 void On_GameMain()
 {
+	GameEntry::Game_Main();
 }
 void On_GameExit()
 {
-
+	GameEntry::Game_Shutdown();
 }
 
 
