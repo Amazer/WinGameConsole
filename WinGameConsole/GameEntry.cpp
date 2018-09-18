@@ -35,9 +35,13 @@ int GameEntry::Game_Main()
 	DDRAW_INIT_STRUCT(ddsd);
 	lpddsback->Lock(NULL, &ddsd, DDLOCK_WAIT | DDLOCK_SURFACEMEMORYPTR, NULL);
 
-	Draw_Filled_Polygon2D(&default_clipRect, &poly, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+//	Draw_Filled_Polygon2D(&default_clipRect, &poly, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
 
-	Rotate_Polygon2d_Mat(&poly, 1);
+//	Rotate_Polygon2d_Mat(&poly, 1);
+
+	Draw_Triangle_2D(&default_clipRect, 100, 100, 200, 150, 200, 200, (int)RGBColor(255, 0, 255,0), (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+
+//	Draw_Line32(100, 100, 400, 400, __RGB32BIT(0, 0, 255, 200), (UINT*)ddsd.lpSurface, ddsd.lPitch);
 
 	lpddsback->Unlock(NULL);
 

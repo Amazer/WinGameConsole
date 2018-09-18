@@ -187,7 +187,7 @@ int Game_Main(void *params, int num_parms)
 	On_GameMain();
 
 	// µÈ´ý´¹Ö±¿Õ°×½áÊø
-	lpdd->WaitForVerticalBlank(DDWAITVB_BLOCKEND, NULL);
+	DDraw_Wait_For_Vsync();
 
 	if (KEYDOWN(VK_ESCAPE))
 	{

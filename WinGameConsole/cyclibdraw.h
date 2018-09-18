@@ -191,6 +191,9 @@ typedef struct BLINKER_TYP
 
 #pragma region 函数定义
 
+inline void Mem_Set_USHORT(void *dest, USHORT data, int count);
+inline void Mem_Set_UINT(void *dest, UINT data, int count);
+
 #pragma region 随机颜色
 extern inline UINT RandomRGB16BIT565();
 extern inline UINT RandomRGBA32();
@@ -256,14 +259,26 @@ int Init_LookTable();
 #pragma region DDRAW 相关函数
 // 初始化ddraw
 int DDraw_Init(int width, int height, int bpp, int windowed);
+int DDraw_Wait_For_Vsync(void);
 int DDraw_ShutDown();
 int DDraw_CheckWinClient();
 int DDraw_Flip(void);
 int DDraw_Clipper_Init();
 int DDraw_Fill_Surface(LPDIRECTDRAWSURFACE7 lpdds, int color);
 int DDraw_Draw_Surface(LPDIRECTDRAWSURFACE7 source, int x, int y, int width, int height, LPDIRECTDRAWSURFACE7 dest, int transparent = 1, float scale = 1.0f);
+UCHAR *DDraw_Lock_Surface(LPDIRECTDRAWSURFACE7 lpdds, int *lpitch);
+int DDraw_Unlock_Surface(LPDIRECTDRAWSURFACE7 lpdds);
+
+UCHAR *DDraw_Lock_BackSurface(void);
+UCHAR *DDRAw_Lock_PrimarySurface(void);
+int DDraw_Unlock_BackSurface(void);
+int DDraw_Unlock_PrimarySurface(void);
+
+// 根据像素格式初始化函数指针
+int DDraw_Init_FunctionPtrs(void);
+
 // 创建离屏表面
-LPDIRECTDRAWSURFACE7 DDraw_Create_Surface(int width, int height, int mem_flags = 0, int color_key = 0);
+LPDIRECTDRAWSURFACE7 DDraw_Create_Surface(int width, int height, int mem_flags = DDSCAPS_VIDEOMEMORY, int color_key = 0);
 // 创建一个裁剪器
 LPDIRECTDRAWCLIPPER DDraw_Attach_Clipper(LPDIRECTDRAWSURFACE7 lpdds, int num_rects, LPRECT clip_list);
 
@@ -318,12 +333,24 @@ int Draw_Polygon2D(RECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, int lpitch
 // 填充平底三角形 ,按照逆时针方向作为正方向发送顶点。函数内部调换为：p0是顶点，p1是left点，p2是right点
 void Draw_Bottom_Tri(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR* dest_buffer, int mempitch);
 
+void Draw_Bottom_Tri16(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR* dest_buffer, int mempitch);
+
+void Draw_Bottom_Tri32(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR* dest_buffer, int mempitch);
+
 // 填充平顶三角形，按照逆时针方向作为正方向发送顶点,函数内部调换为：p0是低点，p1是right点，p2是left点
 void Draw_Top_Tri(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR* dest_buffer, int mempitch);
+void Draw_Top_Tri16(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR* dest_buffer, int mempitch);
+void Draw_Top_Tri32(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR* dest_buffer, int mempitch);
 
 // 任意一个三角形。顶点顺序逆时针发送。内部调整为：p0为顶点，p1为左边点，p2为右边点
 // 使用分割为两个三角形的方式进行填充
-void Draw_Triangle_2D(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2,
+void Draw_Triangle_2D8(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2,
+	int color, UCHAR *dest_buffer, int mempitch);
+
+void Draw_Triangle_2D16(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2,
+	int color, UCHAR *dest_buffer, int mempitch);
+
+void Draw_Triangle_2D32(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2,
 	int color, UCHAR *dest_buffer, int mempitch);
 
 
@@ -361,9 +388,9 @@ int Find_Bounding_Box_Poly2D(POLYGON2D_PTR poly, BOUND2DF_PTR bound);
 
 extern LPDIRECTDRAW7 lpdd;
 extern LPDIRECTDRAWSURFACE7 lpddsprimary;		// 主显示表面(主表面)
-extern LPDIRECTDRAWSURFACE7 lpddsback ;			// 后备表面(主表面的子表面)
-extern LPDIRECTDRAWCLIPPER lpddclipper ;			// 裁剪器
-extern LPDIRECTDRAWCLIPPER lpddclipperwin ;		// 窗口裁剪器
+extern LPDIRECTDRAWSURFACE7 lpddsback;			// 后备表面(主表面的子表面)
+extern LPDIRECTDRAWCLIPPER lpddclipper;			// 裁剪器
+extern LPDIRECTDRAWCLIPPER lpddclipperwin;		// 窗口裁剪器
 
 extern LPDIRECTDRAWPALETTE lpddpal;
 extern PALETTEENTRY palette[256];
@@ -373,8 +400,8 @@ extern DDSCAPS2 ddcaps;							// 表面的能力描述
 extern DDBLTFX ddbltfx;							// 内存块blitter
 extern HRESULT ddrval;							// dd调用的返回值
 
-extern UCHAR *primary_buffer ;
-extern UCHAR *back_buffer ;
+extern UCHAR *primary_buffer;
+extern UCHAR *back_buffer;
 
 extern int primary_lpitch;
 extern int back_lpitch;
@@ -399,9 +426,19 @@ extern RECT win_client_rect;						// 窗口模式的用户区域
 extern float cos_look[361];
 extern float sin_look[361];
 
+// rgb颜色
+extern void* (*RGBColor)(int r, int g, int b, int a);
+extern void* RGBColor8Bit(int r, int g, int b, int a);
+extern void* RGBColor16Bit565(int r, int g, int b, int a);
+extern void* RGBColor16Bit555(int r, int g, int b, int a);
+extern void * RGBAColor32Bit(int r, int g, int b, int a);
+
 extern USHORT(*RGB16Bit)(int r, int g, int b);
 extern USHORT RGB16Bit565(int r, int g, int b);
 extern USHORT RGB16Bit555(int r, int g, int b);
 
+// draw triangle_2d 的函数指针
+extern void(*Draw_Triangle_2D)(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2,
+	int color, UCHAR *dest_buffer, int mempitch);
 
 #pragma endregion 全局变量
