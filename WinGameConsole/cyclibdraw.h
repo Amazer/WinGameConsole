@@ -270,7 +270,7 @@ UCHAR *DDraw_Lock_Surface(LPDIRECTDRAWSURFACE7 lpdds, int *lpitch);
 int DDraw_Unlock_Surface(LPDIRECTDRAWSURFACE7 lpdds);
 
 UCHAR *DDraw_Lock_BackSurface(void);
-UCHAR *DDRAw_Lock_PrimarySurface(void);
+UCHAR *DDRaw_Lock_PrimarySurface(void);
 int DDraw_Unlock_BackSurface(void);
 int DDraw_Unlock_PrimarySurface(void);
 
@@ -305,26 +305,36 @@ int Scan_Image_Bitmap24(BITMAP_FILE_PTR bitmap,     // bitmap file to scan image
 
 #pragma region Draw Text
 
-int Draw_Text_GDI_IN_DD(const char * txt, int x, int y, COLORREF color, LPDIRECTDRAWSURFACE7 lpdds);
+extern int Draw_Text_GDI_IN_DD(const char * txt, int x, int y, COLORREF color, LPDIRECTDRAWSURFACE7 lpdds);
 #pragma endregion
 
 #pragma region Draw Lines
+
+//  画线的函数指针。（不裁剪）
+extern int (*Draw_Line)(int x0, int y0, int x1, int y1, int color, UCHAR *vb_start, int lpitch);
 // vb_start: video buffer start
-int Draw_Line8(int x0, int y0, int x1, int y1, UCHAR color, UCHAR *vb_start, int lpitch);
+extern int Draw_Line8(int x0, int y0, int x1, int y1, int color, UCHAR *vb_start, int lpitch);
 
 // vb_start: video buffer start
-int Draw_Line16(int x0, int y0, int x1, int y1, USHORT color, USHORT *vb_start, int lpitch);
+extern int Draw_Line16(int x0, int y0, int x1, int y1, int color, UCHAR *vb_start, int lpitch);
 
-int Draw_Line32(int x0, int y0, int x1, int y1, UINT color, UINT *vb_start, int lpitch);
+extern int Draw_Line32(int x0, int y0, int x1, int y1, int color, UCHAR *vb_start, int lpitch);
 
 // 裁剪线段。返回值为1的时候，没有完全被裁剪掉；返回值为0的时候，完全被裁减掉了
-int Clip_Line(RECT clipRect, int &x0, int &y0, int &x1, int &y1);
+extern int Clip_Line(LPRECT clipRect, int &x0, int &y0, int &x1, int &y1);
 
-void Draw_Clip_Line8(RECT clipRect, int x0, int y0, int x1, int y1, UCHAR color, UCHAR *vb_start, int lpitch);
+extern void (*Draw_Clip_Line)(LPRECT clipRect, int x0, int y0, int x1, int y1, int color, UCHAR *vb_start, int lpitch);
+extern void Draw_Clip_Line8(LPRECT clipRect, int x0, int y0, int x1, int y1, int color, UCHAR *vb_start, int lpitch);
+extern void Draw_Clip_Line16(LPRECT clipRect, int x0, int y0, int x1, int y1, int color, UCHAR *vb_start, int lpitch);
+extern void Draw_Clip_Line32(LPRECT clipRect, int x0, int y0, int x1, int y1, int color, UCHAR *vb_start, int lpitch);
 #pragma endregion
 
 #pragma region Draw Polygon2D
-int Draw_Polygon2D(RECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, int lpitch);
+
+extern int (*Draw_Polygon2D)(LPRECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, int lpitch);
+extern int Draw_Polygon2D8(LPRECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, int lpitch);
+extern int Draw_Polygon2D16(LPRECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, int lpitch);
+extern int Draw_Polygon2D32(LPRECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, int lpitch);
 
 #pragma endregion
 

@@ -18,7 +18,7 @@
 
 #define FULL_SCREEN_MODE 1		// 是否为全屏模式
 
-#define SCREEN_BPP 16			// 色彩位深  窗口模式不起作用
+#define SCREEN_BPP 32			// 色彩位深  窗口模式不起作用
 
 HWND main_window_handle = NULL;
 HINSTANCE main_instance = NULL;

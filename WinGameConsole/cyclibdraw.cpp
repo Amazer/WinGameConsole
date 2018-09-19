@@ -85,6 +85,15 @@ void(*Draw_TriangleFP_2D)(PRECT clipRect, int x0, int y0, int x1, int y1, int x2
 	int color, UCHAR *dest_buffer, int mempitch);
 
 void (*Draw_Filled_Polygon2D)(PRECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, int mempitch);
+
+int (*Draw_Polygon2D)(LPRECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, int lpitch);
+
+//  基本2D图元相关函数指针
+
+int (*Draw_Line)(int x0, int y0, int x1, int y1, int color, UCHAR *vb_start, int lpitch);
+
+void (*Draw_Clip_Line)(LPRECT clipRect, int x0, int y0, int x1, int y1, int color, UCHAR *vb_start, int lpitch);
+
 ///////////// 函数指针 edn///////////////////////////
 
 #pragma endregion 全局变量
@@ -2767,7 +2776,7 @@ int Draw_Text_GDI_IN_DD(const char * txt, int x, int y, COLORREF color, LPDIRECT
 #pragma region Draw Lines
 
 // vb_start: video buffer start
-int Draw_Line8(int x0, int y0, int x1, int y1, UCHAR color, UCHAR *vb_start, int lpitch)
+int Draw_Line8(int x0, int y0, int x1, int y1, int color, UCHAR *vb_start, int lpitch)
 {
 	int dx, dy, dx2, dy2, error;
 	int x_inc, y_inc;
@@ -2839,14 +2848,16 @@ int Draw_Line8(int x0, int y0, int x1, int y1, UCHAR color, UCHAR *vb_start, int
 }
 
 // vb_start: video buffer start
-int Draw_Line16(int x0, int y0, int x1, int y1, USHORT color, USHORT *vb_start, int lpitch)
+int Draw_Line16(int x0, int y0, int x1, int y1, int color, UCHAR *vb_start, int lpitch)
 {
 	int dx, dy, dx2, dy2, error;
 	int x_inc, y_inc;
 	int index;
 	int x = x0, y = y0;
 
-	vb_start = vb_start + x0 + y0 * (lpitch >> 1);
+	USHORT * vb_dest = (USHORT*)vb_start;
+	lpitch = (lpitch >> 1);
+	vb_dest = vb_dest + x0 + y0 * lpitch;
 
 	dx = x1 - x0;
 	dy = y1 - y0;
@@ -2879,16 +2890,16 @@ int Draw_Line16(int x0, int y0, int x1, int y1, USHORT color, USHORT *vb_start, 
 		error = dy2 - dx;
 		for (index = 0; index <= dx; ++index)
 		{
-			*vb_start = color;
+			*vb_dest = color;
 			if (error > 0)
 			{
 				error -= dx2;
 				y += y_inc;
-				vb_start = vb_start + y_inc * (lpitch >> 1);
+				vb_dest = vb_dest + y_inc * lpitch;
 			}
 			error += dy2;
 			x += x_inc;
-			vb_start = vb_start + x_inc;
+			vb_dest = vb_dest + x_inc;
 		}
 	}
 	else
@@ -2896,16 +2907,16 @@ int Draw_Line16(int x0, int y0, int x1, int y1, USHORT color, USHORT *vb_start, 
 		error = dx2 - dy;
 		for (index = 0; index <= dy; index++)
 		{
-			*vb_start = color;
+			*vb_dest = color;
 			if (error >= 0)
 			{
 				error -= dy2;
 				x += x_inc;
-				vb_start = vb_start + x_inc;
+				vb_dest = vb_dest + x_inc;
 			}
 			error += dx2;
 			y += y_inc;
-			vb_start = vb_start + y_inc * (lpitch >> 1);
+			vb_dest = vb_dest + y_inc * lpitch;
 		}
 	}
 
@@ -2913,14 +2924,16 @@ int Draw_Line16(int x0, int y0, int x1, int y1, USHORT color, USHORT *vb_start, 
 }
 
 // vb_start: video buffer start
-int Draw_Line32(int x0, int y0, int x1, int y1, UINT color, UINT *vb_start, int lpitch)
+int Draw_Line32(int x0, int y0, int x1, int y1, int color, UCHAR *vb_start, int lpitch)
 {
 	int dx, dy, dx2, dy2, error;
 	int x_inc, y_inc;
 	int index;
 	int x = x0, y = y0;
 
-	vb_start = vb_start + x0 + y0 * (lpitch >> 2);
+	UINT* vb_dest = (UINT*)vb_start;
+	lpitch = (lpitch >> 2);
+	vb_dest = vb_dest + x0 + y0 * lpitch;
 
 	dx = x1 - x0;
 	dy = y1 - y0;
@@ -2953,16 +2966,16 @@ int Draw_Line32(int x0, int y0, int x1, int y1, UINT color, UINT *vb_start, int 
 		error = dy2 - dx;
 		for (index = 0; index <= dx; ++index)
 		{
-			*vb_start = color;
+			*vb_dest = color;
 			if (error > 0)
 			{
 				error -= dx2;
 				y += y_inc;
-				vb_start = vb_start + y_inc * (lpitch >> 2);
+				vb_dest = vb_dest + y_inc * lpitch;
 			}
 			error += dy2;
 			x += x_inc;
-			vb_start = vb_start + x_inc;
+			vb_dest = vb_dest + x_inc;
 		}
 	}
 	else
@@ -2970,16 +2983,16 @@ int Draw_Line32(int x0, int y0, int x1, int y1, UINT color, UINT *vb_start, int 
 		error = dx2 - dy;
 		for (index = 0; index <= dy; index++)
 		{
-			*vb_start = color;
+			*vb_dest = color;
 			if (error >= 0)
 			{
 				error -= dy2;
 				x += x_inc;
-				vb_start = vb_start + x_inc;
+				vb_dest = vb_dest + x_inc;
 			}
 			error += dx2;
 			y += y_inc;
-			vb_start = vb_start + y_inc * (lpitch >> 2);
+			vb_dest = vb_dest + y_inc * lpitch;
 		}
 	}
 
@@ -2987,44 +3000,44 @@ int Draw_Line32(int x0, int y0, int x1, int y1, UINT color, UINT *vb_start, int 
 }
 
 // 裁剪线段。返回值为1的时候，没有完全被裁剪掉；返回值为0的时候，完全被裁减掉了
-int Clip_Line(RECT clipRect, int &x0, int &y0, int &x1, int &y1)
+int Clip_Line(LPRECT clipRect, int &x0, int &y0, int &x1, int &y1)
 {
 	int point0_code = CLIP_CODE_C, point1_code = CLIP_CODE_C;
 
 	// line's pointcode
-	if (x0 < clipRect.left)
+	if (x0 < clipRect->left)
 	{
 		point0_code |= CLIP_CODE_W;
 	}
-	else if (x0 > clipRect.right)
+	else if (x0 > clipRect->right)
 	{
 		point0_code |= CLIP_CODE_E;
 	}
 
-	if (y0 < clipRect.top)
+	if (y0 < clipRect->top)
 	{
 		point0_code |= CLIP_CODE_N;
 	}
-	else if (y0 > clipRect.bottom)
+	else if (y0 > clipRect->bottom)
 	{
 		point0_code |= CLIP_CODE_S;
 	}
 
 
-	if (x1 < clipRect.left)
+	if (x1 < clipRect->left)
 	{
 		point1_code |= CLIP_CODE_W;
 	}
-	else if (x1 > clipRect.right)
+	else if (x1 > clipRect->right)
 	{
 		point1_code |= CLIP_CODE_E;
 	}
 
-	if (y1 < clipRect.top)
+	if (y1 < clipRect->top)
 	{
 		point1_code |= CLIP_CODE_N;
 	}
-	else if (y1 > clipRect.bottom)
+	else if (y1 > clipRect->bottom)
 	{
 		point1_code |= CLIP_CODE_S;
 	}
@@ -3054,11 +3067,11 @@ int Clip_Line(RECT clipRect, int &x0, int &y0, int &x1, int &y1)
 			//			inter_x = x0;
 			if (point0_code&CLIP_CODE_N)		// 在north
 			{
-				y0 = clipRect.top;
+				y0 = clipRect->top;
 			}
 			else   // 在south
 			{
-				y0 = clipRect.bottom;
+				y0 = clipRect->bottom;
 			}
 		}
 		if (point1_code != CLIP_CODE_C)		// point1在外面
@@ -3067,11 +3080,11 @@ int Clip_Line(RECT clipRect, int &x0, int &y0, int &x1, int &y1)
 			//			inter_x = x1;
 			if (point1_code&CLIP_CODE_N)
 			{
-				y1 = clipRect.top;
+				y1 = clipRect->top;
 			}
 			else
 			{
-				y1 = clipRect.bottom;
+				y1 = clipRect->bottom;
 			}
 		}
 		return 1;
@@ -3085,11 +3098,11 @@ int Clip_Line(RECT clipRect, int &x0, int &y0, int &x1, int &y1)
 			//			inter_y = y0;
 			if (point0_code&CLIP_CODE_W)		// 在west
 			{
-				x0 = clipRect.left;
+				x0 = clipRect->left;
 			}
 			else   // 在east
 			{
-				x0 = clipRect.right;
+				x0 = clipRect->right;
 			}
 		}
 		if (point1_code != CLIP_CODE_C)		// point1在外面
@@ -3098,11 +3111,11 @@ int Clip_Line(RECT clipRect, int &x0, int &y0, int &x1, int &y1)
 			//			inter_y = y1;
 			if (point1_code&CLIP_CODE_W)
 			{
-				x1 = clipRect.left;
+				x1 = clipRect->left;
 			}
 			else
 			{
-				x1 = clipRect.right;
+				x1 = clipRect->right;
 			}
 		}
 		return 1;
@@ -3115,60 +3128,60 @@ int Clip_Line(RECT clipRect, int &x0, int &y0, int &x1, int &y1)
 	switch (point0_code)
 	{
 	case CLIP_CODE_N:
-		y0 = clipRect.top;
+		y0 = clipRect->top;
 		x0 = (y0 - y1) / m + x1;
 		break;
 	case CLIP_CODE_S:
-		y0 = clipRect.bottom;
+		y0 = clipRect->bottom;
 		x0 = (y0 - y1) / m + x1;
 		break;
 	case CLIP_CODE_W:
-		x0 = clipRect.left;
+		x0 = clipRect->left;
 		y0 = m * (x0 - x1) + y1;
 		break;
 	case CLIP_CODE_E:
-		x0 = clipRect.right;
+		x0 = clipRect->right;
 		y0 = m * (x0 - x1) + y1;
 		break;
 	case CLIP_CODE_NE:
 		// 在N线上
-		y0 = clipRect.top;		// 先判断交点是否在N线上
+		y0 = clipRect->top;		// 先判断交点是否在N线上
 		x0 = (y0 - y1) / m + x1;
 
-		if (x0<clipRect.left || x0>clipRect.right)// 交点在E线上
+		if (x0<clipRect->left || x0>clipRect->right)// 交点在E线上
 		{
-			x0 = clipRect.right;
+			x0 = clipRect->right;
 			y0 = m * (x0 - x1) + y1;
 		}
 		break;
 	case CLIP_CODE_SE:
 		// S线上
-		y0 = clipRect.bottom;
+		y0 = clipRect->bottom;
 		x0 = (y0 - y1) / m + x1;
-		if (x0<clipRect.left || x0>clipRect.right)  // E线上
+		if (x0<clipRect->left || x0>clipRect->right)  // E线上
 		{
-			x0 = clipRect.right;
+			x0 = clipRect->right;
 			y0 = m * (x0 - x1) + y1;
 		}
 		break;
 	case CLIP_CODE_NW:
 		// N线
-		y0 = clipRect.top;
+		y0 = clipRect->top;
 		x0 = (y0 - y1) / m + x1;
-		if (x0<clipRect.left || x0>clipRect.right)
+		if (x0<clipRect->left || x0>clipRect->right)
 		{
-			x0 = clipRect.left;
+			x0 = clipRect->left;
 			y0 = m * (x0 - x1) + y1;
 		}
 		break;
 	case CLIP_CODE_SW:
 		// s line
-		y0 = clipRect.bottom;
+		y0 = clipRect->bottom;
 		x0 = (y0 - y1) / m + x1;
 
-		if (x0<clipRect.left || x0>clipRect.right)
+		if (x0<clipRect->left || x0>clipRect->right)
 		{
-			x0 = clipRect.left;
+			x0 = clipRect->left;
 			y0 = m * (x0 - x1) + y1;
 		}
 		break;
@@ -3178,68 +3191,68 @@ int Clip_Line(RECT clipRect, int &x0, int &y0, int &x1, int &y1)
 	switch (point1_code)
 	{
 	case CLIP_CODE_N:
-		y1 = clipRect.top;
+		y1 = clipRect->top;
 		x1 = (y1 - y0) / m + x0;
 		break;
 	case CLIP_CODE_S:
-		y1 = clipRect.bottom;
+		y1 = clipRect->bottom;
 		x1 = (y1 - y0) / m + x0;
 		break;
 	case CLIP_CODE_W:
-		x1 = clipRect.left;
+		x1 = clipRect->left;
 		y1 = m * (x1 - x0) + y0;
 		break;
 	case CLIP_CODE_E:
-		x1 = clipRect.right;
+		x1 = clipRect->right;
 		y1 = m * (x1 - x0) + y0;
 		break;
 	case CLIP_CODE_NE:
 		// 在N线上
-		y1 = clipRect.top;		// 先判断交点是否在N线上
+		y1 = clipRect->top;		// 先判断交点是否在N线上
 		x1 = (y1 - y0) / m + x0;
-		if (x1<clipRect.left || x1>clipRect.right)// 交点在E线上
+		if (x1<clipRect->left || x1>clipRect->right)// 交点在E线上
 		{
-			x1 = clipRect.right;
+			x1 = clipRect->right;
 			y1 = m * (x1 - x0) + y0;
 		}
 		break;
 	case CLIP_CODE_SE:
 		// S线上
-		y1 = clipRect.bottom;
+		y1 = clipRect->bottom;
 		x1 = (y1 - y0) / m + x0;
-		if (x1<clipRect.left || x1>clipRect.right)  // E线上
+		if (x1<clipRect->left || x1>clipRect->right)  // E线上
 		{
-			x1 = clipRect.right;
+			x1 = clipRect->right;
 			y1 = m * (x1 - x0) + y0;
 		}
 		break;
 	case CLIP_CODE_NW:
 		// N线
-		y1 = clipRect.top;
+		y1 = clipRect->top;
 		x1 = (y1 - y0) / m + x0;
-		if (x1<clipRect.left || x1>clipRect.right)
+		if (x1<clipRect->left || x1>clipRect->right)
 		{
-			x1 = clipRect.left;
+			x1 = clipRect->left;
 			y1 = m * (x1 - x0) + y0;
 		}
 		break;
 	case CLIP_CODE_SW:
 		// on S line
-		y1 = clipRect.bottom;
+		y1 = clipRect->bottom;
 		x1 = (y1 - y0) / m + x0;
 
-		if (x1<clipRect.left || x1>clipRect.right)
+		if (x1<clipRect->left || x1>clipRect->right)
 		{
-			x1 = clipRect.left;
+			x1 = clipRect->left;
 			y1 = m * (x1 - x0) + y0;
 		}
 		break;
 	}
 	// 最后再check一下端点是否正确. 有错误就返回0
-	if (x0<clipRect.left || x0>clipRect.right
-		|| x1<clipRect.left || y1>clipRect.right
-		|| y0<clipRect.top || y0>clipRect.bottom
-		|| y1<clipRect.top || y1>clipRect.bottom)
+	if (x0<clipRect->left || x0>clipRect->right
+		|| x1<clipRect->left || y1>clipRect->right
+		|| y0<clipRect->top || y0>clipRect->bottom
+		|| y1<clipRect->top || y1>clipRect->bottom)
 	{
 		//		printf("clip (%d,%d),(%d,%d)", x0, y0, x1, y1);
 		return 0;
@@ -3247,7 +3260,7 @@ int Clip_Line(RECT clipRect, int &x0, int &y0, int &x1, int &y1)
 	return 1;
 }
 
-void Draw_Clip_Line8(RECT clipRect, int x0, int y0, int x1, int y1, UCHAR color, UCHAR *vb_start, int lpitch)
+void Draw_Clip_Line8(LPRECT clipRect, int x0, int y0, int x1, int y1, int color, UCHAR *vb_start, int lpitch)
 {
 	int cx0 = x0, cy0 = y0, cx1 = x1, cy1 = y1;
 	if (Clip_Line(clipRect, cx0, cy0, cx1, cy1))
@@ -3256,11 +3269,29 @@ void Draw_Clip_Line8(RECT clipRect, int x0, int y0, int x1, int y1, UCHAR color,
 	}
 }
 
+void Draw_Clip_Line16(LPRECT clipRect, int x0, int y0, int x1, int y1, int color, UCHAR *vb_start, int lpitch)
+{
+	int cx0 = x0, cy0 = y0, cx1 = x1, cy1 = y1;
+	if (Clip_Line(clipRect, cx0, cy0, cx1, cy1))
+	{
+		Draw_Line16(cx0, cy0, cx1, cy1, color, vb_start, lpitch);
+	}
+}
+
+void Draw_Clip_Line32(LPRECT clipRect, int x0, int y0, int x1, int y1, int color, UCHAR *vb_start, int lpitch)
+{
+	int cx0 = x0, cy0 = y0, cx1 = x1, cy1 = y1;
+	if (Clip_Line(clipRect, cx0, cy0, cx1, cy1))
+	{
+		Draw_Line32(cx0, cy0, cx1, cy1, color, vb_start, lpitch);
+	}
+}
+
 #pragma endregion 
 
 #pragma region Draw Polygon2D
 
-int Draw_Polygon2D(RECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, int lpitch)
+int Draw_Polygon2D8(LPRECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, int lpitch)
 {
 	if (poly->state)
 	{
@@ -3272,6 +3303,36 @@ int Draw_Polygon2D(RECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, int lpitch
 		}
 		Draw_Clip_Line8(clipRect, poly->vlist[i].x + poly->x0, poly->vlist[i].y + poly->y0, poly->vlist[0].x + poly->x0, poly->vlist[0].y + poly->y0, poly->color, vbuffer, lpitch);
 		//		Draw_Line8(poly->vlist[i].x + poly->x0, poly->vlist[i].y + poly->y0, poly->vlist[0].x + poly->x0, poly->vlist[0].y + poly->y0, poly->color, vbuffer, lpitch);
+		return 1;
+	}
+	return 0;
+}
+
+int Draw_Polygon2D16(LPRECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, int lpitch)
+{
+	if (poly->state)
+	{
+		int i = 0;
+		for (; i < poly->num_verts - 1; ++i)
+		{
+			Draw_Clip_Line16(clipRect, poly->vlist[i].x + poly->x0, poly->vlist[i].y + poly->y0, poly->vlist[i + 1].x + poly->x0, poly->vlist[i + 1].y + poly->y0, poly->color, vbuffer, lpitch);
+		}
+		Draw_Clip_Line16(clipRect, poly->vlist[i].x + poly->x0, poly->vlist[i].y + poly->y0, poly->vlist[0].x + poly->x0, poly->vlist[0].y + poly->y0, poly->color, vbuffer, lpitch);
+		return 1;
+	}
+	return 0;
+}
+
+int Draw_Polygon2D32(LPRECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, int lpitch)
+{
+	if (poly->state)
+	{
+		int i = 0;
+		for (; i < poly->num_verts - 1; ++i)
+		{
+			Draw_Clip_Line32(clipRect, poly->vlist[i].x + poly->x0, poly->vlist[i].y + poly->y0, poly->vlist[i + 1].x + poly->x0, poly->vlist[i + 1].y + poly->y0, poly->color, vbuffer, lpitch);
+		}
+		Draw_Clip_Line32(clipRect, poly->vlist[i].x + poly->x0, poly->vlist[i].y + poly->y0, poly->vlist[0].x + poly->x0, poly->vlist[0].y + poly->y0, poly->color, vbuffer, lpitch);
 		return 1;
 	}
 	return 0;
@@ -4125,7 +4186,7 @@ UCHAR *DDraw_Lock_BackSurface(void)
 
 }
 
-UCHAR *DDRAw_Lock_PrimarySurface(void)
+UCHAR *DDRaw_Lock_PrimarySurface(void)
 {
 	if (primary_buffer)
 		return primary_buffer;
@@ -4163,6 +4224,11 @@ int DDraw_Init_FunctionPtrs(void)
 		Draw_TriangleFP_2D = Draw_TriangleFP_2D8;
 		Draw_Filled_Polygon2D = Draw_Filled_Polygon2D8;
 
+		Draw_Line = Draw_Line8;
+		Draw_Clip_Line = Draw_Clip_Line8;
+
+		Draw_Polygon2D = Draw_Polygon2D8;
+
 		RGBColor = RGBColor8Bit;
 	}
 	else
@@ -4173,6 +4239,10 @@ int DDraw_Init_FunctionPtrs(void)
 		Draw_Triangle_2D = Draw_Triangle_2D16;
 		Draw_TriangleFP_2D = Draw_TriangleFP_2D16;
 		Draw_Filled_Polygon2D = Draw_Filled_Polygon2D16;
+		Draw_Polygon2D = Draw_Polygon2D16;
+
+		Draw_Line = Draw_Line16;
+		Draw_Clip_Line = Draw_Clip_Line16;
 	}
 	else if (dd_pixel_format == DD_PIXEL_FORMAT565)
 	{
@@ -4182,6 +4252,10 @@ int DDraw_Init_FunctionPtrs(void)
 		Draw_Triangle_2D = Draw_Triangle_2D16;
 		Draw_TriangleFP_2D = Draw_TriangleFP_2D16;
 		Draw_Filled_Polygon2D = Draw_Filled_Polygon2D16;
+		Draw_Polygon2D = Draw_Polygon2D16;
+
+		Draw_Line = Draw_Line16;
+		Draw_Clip_Line = Draw_Clip_Line16;
 
 	}
 	else if (dd_pixel_format == DD_PIXEL_FORMAT888)
@@ -4189,14 +4263,24 @@ int DDraw_Init_FunctionPtrs(void)
 		Draw_Triangle_2D = Draw_Triangle_2D32;
 		Draw_TriangleFP_2D = Draw_TriangleFP_2D32;
 		Draw_Filled_Polygon2D = Draw_Filled_Polygon2D32;
+		Draw_Polygon2D = Draw_Polygon2D32;
+
 		RGBColor = RGBAColor32Bit;
+
+		Draw_Line = Draw_Line32;
+		Draw_Clip_Line = Draw_Clip_Line32;
 	}
 	else if (dd_pixel_format == DD_PIXEL_FORMATALPHA888)
 	{
 		Draw_Triangle_2D = Draw_Triangle_2D32;
 		Draw_TriangleFP_2D = Draw_TriangleFP_2D32;
 		Draw_Filled_Polygon2D = Draw_Filled_Polygon2D32;
+		Draw_Polygon2D = Draw_Polygon2D32;
+
 		RGBColor = RGBAColor32Bit;
+
+		Draw_Line = Draw_Line32;
+		Draw_Clip_Line = Draw_Clip_Line32;
 	}
 	return 1;
 }
