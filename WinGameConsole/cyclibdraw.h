@@ -207,6 +207,11 @@ extern inline void Draw_Pixel32(int x, int y, int color, UCHAR *video_buffer, in
 
 #pragma endregion 画像素
 
+#pragma region Draw Rectangle (使用了blt)
+//  填充Surface矩形区域颜色
+extern int Draw_Rectangle(int x1, int y1, int x2, int y2, int color,LPDIRECTDRAWSURFACE7 lpdds);
+#pragma endregion
+
 #pragma region 裁剪
 
 // 裁剪，bitmap从（0，0）点开始计算位置
@@ -326,6 +331,16 @@ extern void (*Draw_Clip_Line)(LPRECT clipRect, int x0, int y0, int x1, int y1, i
 extern void Draw_Clip_Line8(LPRECT clipRect, int x0, int y0, int x1, int y1, int color, UCHAR *vb_start, int lpitch);
 extern void Draw_Clip_Line16(LPRECT clipRect, int x0, int y0, int x1, int y1, int color, UCHAR *vb_start, int lpitch);
 extern void Draw_Clip_Line32(LPRECT clipRect, int x0, int y0, int x1, int y1, int color, UCHAR *vb_start, int lpitch);
+
+extern void (*HLine)(LPRECT clipRect, int x1,int x2,int y,int color, UCHAR *vbuffer, int lpitch);
+extern void (*VLine)(LPRECT clipRect,int y1,int y2,int x,int color, UCHAR *vbuffer, int lpitch);
+extern void HLine8(LPRECT clipRect,int x1,int x2,int y,int color, UCHAR *vbuffer, int lpitch);
+extern void VLine8(LPRECT clipRect,int y1,int y2,int x,int color, UCHAR *vbuffer, int lpitch);
+extern void HLine16(LPRECT clipRect,int x1,int x2,int y,int color, UCHAR *vbuffer, int lpitch);
+extern void VLine16(LPRECT clipRect,int y1,int y2,int x,int color, UCHAR *vbuffer, int lpitch);
+extern void HLine32(LPRECT clipRect,int x1,int x2,int y,int color, UCHAR *vbuffer, int lpitch);
+extern void VLine32(LPRECT clipRect,int y1,int y2,int x,int color, UCHAR *vbuffer, int lpitch);
+
 #pragma endregion
 
 #pragma region Draw Polygon2D

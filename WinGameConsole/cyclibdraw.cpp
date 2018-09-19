@@ -77,24 +77,27 @@ void* (*RGBColor)(int r, int g, int b, int a) = NULL;
 USHORT(*RGB16Bit)(int r, int g, int b) = NULL;
 
 // draw triangle_2d 的函数指针
-void (*Draw_Triangle_2D)(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2,
+void(*Draw_Triangle_2D)(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2,
 	int color, UCHAR *dest_buffer, int mempitch);
 
 // draw triangleFixedPoint_2d 的函数指针
 void(*Draw_TriangleFP_2D)(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2,
 	int color, UCHAR *dest_buffer, int mempitch);
 
-void (*Draw_Filled_Polygon2D)(PRECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, int mempitch);
+void(*Draw_Filled_Polygon2D)(PRECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, int mempitch);
 
-int (*Draw_Polygon2D)(LPRECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, int lpitch);
+int(*Draw_Polygon2D)(LPRECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, int lpitch);
 
 //  基本2D图元相关函数指针
 
-int (*Draw_Line)(int x0, int y0, int x1, int y1, int color, UCHAR *vb_start, int lpitch);
+int(*Draw_Line)(int x0, int y0, int x1, int y1, int color, UCHAR *vb_start, int lpitch);
 
-void (*Draw_Clip_Line)(LPRECT clipRect, int x0, int y0, int x1, int y1, int color, UCHAR *vb_start, int lpitch);
+void(*Draw_Clip_Line)(LPRECT clipRect, int x0, int y0, int x1, int y1, int color, UCHAR *vb_start, int lpitch);
 
-void (*Draw_Pixel)(int x, int y, int color, UCHAR *buffer, int mempitch);
+void(*Draw_Pixel)(int x, int y, int color, UCHAR *buffer, int mempitch);
+
+void(*HLine)(LPRECT clipRect, int x1, int x2, int y, int color, UCHAR *vbuffer, int lpitch);
+void (*VLine)(LPRECT clipRect,int y1,int y2,int x,int color, UCHAR *vbuffer, int lpitch);
 
 ///////////// 函数指针 edn///////////////////////////
 
@@ -145,7 +148,7 @@ inline void Draw_Pixel8(int x, int y, int color, UCHAR *buffer, int mempitch)
 	buffer[x + y * mempitch] = color;
 }
 
-inline void Draw_Pixel16(int x, int y,int color, UCHAR *buffer, int mempitch)
+inline void Draw_Pixel16(int x, int y, int color, UCHAR *buffer, int mempitch)
 {
 	((USHORT*)buffer)[x + y * (mempitch >> 1)] = color;
 }
@@ -162,6 +165,28 @@ UINT RandomRGBA32()
 }
 
 #pragma endregion 
+
+#pragma region Draw Rectangle (使用了blt)
+int Draw_Rectangle(int x1, int y1, int x2, int y2, int color, LPDIRECTDRAWSURFACE7 lpdds)
+{
+	DDBLTFX ddbltfx;
+
+	RECT rect;
+	rect.top = y1;
+	rect.left = x1;
+	rect.bottom = y2;
+	rect.right = x2;
+
+	DDRAW_INIT_STRUCT(ddbltfx);
+
+	ddbltfx.dwFillColor = color;
+
+	lpdds->Blt(&rect, NULL, NULL, DDBLT_COLORFILL | DDBLT_WAIT, &ddbltfx);
+
+	return 1;
+
+}
+#pragma endregion
 
 #pragma region 裁剪
 // 裁剪，bitmap从左上角开始计算位置
@@ -566,7 +591,7 @@ void Draw_Bottom_Tri16(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, i
 		for (int i = y0; i <= y2; ++i, dest_addr += mempitch)		// !注意，是i<=y2 。之前没有加=号:(
 		{
 			Mem_Set_USHORT(dest_addr + (UINT)xs, color, (UINT)(xe - xs + 1));
-//			memset((USHORT*)dest_addr + (unsigned int)xs, color, (unsigned int)(xe - xs + 1)*sizeof(USHORT));
+			//			memset((USHORT*)dest_addr + (unsigned int)xs, color, (unsigned int)(xe - xs + 1)*sizeof(USHORT));
 
 			xs += dxy_left;
 			xe += dxy_right;
@@ -601,9 +626,9 @@ void Draw_Bottom_Tri16(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, i
 			}
 
 			Mem_Set_USHORT(dest_addr + (UINT)xs, color, (UINT)(right - left + 1));
-//			memset((USHORT*)dest_addr + (unsigned int)left, color, (unsigned int)(right - left + 1)*sizeof(USHORT));
+			//			memset((USHORT*)dest_addr + (unsigned int)left, color, (unsigned int)(right - left + 1)*sizeof(USHORT));
 
-			//			dest_addr += mempitch;		// for 循环中加过了
+						//			dest_addr += mempitch;		// for 循环中加过了
 		}
 
 	}
@@ -692,7 +717,7 @@ void Draw_Bottom_Tri32(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, i
 		for (int i = y0; i <= y2; ++i, dest_addr += mempitch)		// !注意，是i<=y2 。之前没有加=号:(
 		{
 			Mem_Set_UINT(dest_addr + (unsigned int)xs, color, (unsigned int)(xe - xs + 1));
-//			memset((UINT*)dest_addr + (unsigned int)xs, color, (unsigned int)(xe - xs + 1)*sizeof(UINT));
+			//			memset((UINT*)dest_addr + (unsigned int)xs, color, (unsigned int)(xe - xs + 1)*sizeof(UINT));
 
 			xs += dxy_left;
 			xe += dxy_right;
@@ -726,9 +751,9 @@ void Draw_Bottom_Tri32(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, i
 				}
 			}
 			Mem_Set_UINT(dest_addr + (unsigned int)xs, color, (unsigned int)(right - left + 1));
-//			memset((UINT*)dest_addr + (unsigned int)left, color, (unsigned int)(right - left + 1)*sizeof(UINT));
+			//			memset((UINT*)dest_addr + (unsigned int)left, color, (unsigned int)(right - left + 1)*sizeof(UINT));
 
-			//			dest_addr += mempitch;		// for 循环中加过了
+						//			dest_addr += mempitch;		// for 循环中加过了
 		}
 
 	}
@@ -928,7 +953,7 @@ void Draw_Top_Tri16(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int 
 		{
 
 			Mem_Set_USHORT(dest_addr + (UINT)xs, color, (UINT)(xe - xs + 1));
-//			memset((USHORT*)dest_addr + (unsigned int)xs, color, (unsigned int)(xe - xs + 1)*sizeof(USHORT));
+			//			memset((USHORT*)dest_addr + (unsigned int)xs, color, (unsigned int)(xe - xs + 1)*sizeof(USHORT));
 			xs -= dxy_left;
 			xe -= dxy_right;
 		}
@@ -957,7 +982,7 @@ void Draw_Top_Tri16(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int 
 			}
 
 			Mem_Set_USHORT(dest_addr + (UINT)xs, color, (UINT)(right - left + 1));
-//			memset((USHORT*)dest_addr + (unsigned int)left, color, (unsigned int)(right - left + 1)*sizeof(USHORT));
+			//			memset((USHORT*)dest_addr + (unsigned int)left, color, (unsigned int)(right - left + 1)*sizeof(USHORT));
 		}
 
 	}
@@ -972,31 +997,31 @@ void Draw_Top_Tri16(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int 
 
 inline void Mem_Set_USHORT(void *dest, USHORT data, int count)
 {
-// this function fills or sets unsigned 16-bit aligned memory
-// count is number of words
+	// this function fills or sets unsigned 16-bit aligned memory
+	// count is number of words
 
-_asm 
-    { 
-    mov edi, dest   ; edi points to destination memory
-    mov ecx, count  ; number of 16-bit words to move
-    mov ax,  data   ; 16-bit data
-    rep stosw       ; move data
-    } // end asm
- 
+	_asm
+	{
+		mov edi, dest; edi points to destination memory
+		mov ecx, count; number of 16 - bit words to move
+		mov ax, data; 16 - bit data
+		rep stosw; move data
+	} // end asm
+
 } // end Mem_Set_WORD
 
 inline void Mem_Set_UINT(void *dest, UINT data, int count)
 {
-// this function fills or sets unsigned 32-bit aligned memory
-// count is number of quads
+	// this function fills or sets unsigned 32-bit aligned memory
+	// count is number of quads
 
-_asm 
-    { 
-    mov edi, dest   ; edi points to destination memory
-    mov ecx, count  ; number of 32-bit words to move
-    mov eax, data   ; 32-bit data
-    rep stosd       ; move data
-    } // end asm
+	_asm
+	{
+		mov edi, dest; edi points to destination memory
+		mov ecx, count; number of 32 - bit words to move
+		mov eax, data; 32 - bit data
+		rep stosd; move data
+	} // end asm
 
 } // end Mem_Set_QUAD
 void Draw_Top_Tri32(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR* dest_buffer, int mempitch)
@@ -1066,7 +1091,7 @@ void Draw_Top_Tri32(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int 
 	}
 
 	// 计算起点行
-	dest_addr +=  y0 * mempitch;
+	dest_addr += y0 * mempitch;
 
 	// 点都在clip框内
 	if (x0 > clipRect->left&&x0<clipRect->right&&
@@ -1077,7 +1102,7 @@ void Draw_Top_Tri32(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int 
 		{
 
 			Mem_Set_UINT(dest_addr + (unsigned int)xs, color, (unsigned int)(xe - xs + 1));
-//			memset((UINT*)dest_addr + (unsigned int)xs, color, (unsigned int)(xe - xs + 1)*sizeof(UINT));
+			//			memset((UINT*)dest_addr + (unsigned int)xs, color, (unsigned int)(xe - xs + 1)*sizeof(UINT));
 			xs -= dxy_left;
 			xe -= dxy_right;
 		}
@@ -1106,7 +1131,7 @@ void Draw_Top_Tri32(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int 
 			}
 
 			Mem_Set_UINT(dest_addr + (unsigned int)xs, color, (unsigned int)(right - left + 1));
-//			memset((UINT*)dest_addr + (unsigned int)left, color, (unsigned int)(right - left + 1)*sizeof(UINT));
+			//			memset((UINT*)dest_addr + (unsigned int)left, color, (unsigned int)(right - left + 1)*sizeof(UINT));
 		}
 
 	}
@@ -1200,7 +1225,7 @@ void Draw_Triangle_2D8(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, i
 	return;
 }
 
-void Draw_Triangle_2D16(PRECT clipRect,int x0, int y0, int x1, int y1, int x2, int y2,
+void Draw_Triangle_2D16(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2,
 	int color, UCHAR *dest_buffer, int mempitch)
 {
 	// 按y值排序 y0<y1<y2
@@ -1281,7 +1306,7 @@ void Draw_Triangle_2D16(PRECT clipRect,int x0, int y0, int x1, int y1, int x2, i
 
 }
 
-void Draw_Triangle_2D32(PRECT clipRect,int x0, int y0, int x1, int y1, int x2, int y2,
+void Draw_Triangle_2D32(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2,
 	int color, UCHAR *dest_buffer, int mempitch)
 {
 	// 按y值排序 y0<y1<y2
@@ -1568,7 +1593,7 @@ void Draw_Top_TriFP16(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, in
 		for (int i = y0; i >= y1; --i, dest_addr -= mempitch)
 		{
 
-//			Mem_Set_USHORT(dest_addr + ((xs + FIXP16_ROUND_UP) >> FIXP16_SHIFT), color, (((xe - xs + FIXP16_ROUND_UP) >> FIXP16_SHIFT) + 1));
+			//			Mem_Set_USHORT(dest_addr + ((xs + FIXP16_ROUND_UP) >> FIXP16_SHIFT), color, (((xe - xs + FIXP16_ROUND_UP) >> FIXP16_SHIFT) + 1));
 			Mem_Set_USHORT(dest_addr + FIXP_2_INT(xs), color, FIXP_2_INT((xe - xs)) + 1);
 			// xs和se都是定点数，要先转回成整数
 //			memset((UCHAR*)dest_addr + ((xs + FIXP16_ROUND_UP) >> FIXP16_SHIFT), color, (((xe - xs + FIXP16_ROUND_UP) >> FIXP16_SHIFT) + 1));
@@ -1602,8 +1627,8 @@ void Draw_Top_TriFP16(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, in
 			}
 
 			Mem_Set_USHORT(dest_addr + FIXP_2_INT(xs), color, FIXP_2_INT((right - left)) + 1);
-//			Mem_Set_USHORT(dest_addr + (unsigned int)left, color, (unsigned int)(right - left + 1));
-//			memset((UCHAR*)dest_addr + (unsigned int)left, color, (unsigned int)(right - left + 1));
+			//			Mem_Set_USHORT(dest_addr + (unsigned int)left, color, (unsigned int)(right - left + 1));
+			//			memset((UCHAR*)dest_addr + (unsigned int)left, color, (unsigned int)(right - left + 1));
 		}
 
 	}
@@ -1683,7 +1708,7 @@ void Draw_Top_TriFP32(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, in
 	}
 
 	// 计算起点行
-	dest_addr +=  y0 * mempitch;
+	dest_addr += y0 * mempitch;
 
 	// 点都在clip框内
 	if (x0 > clipRect->left&&x0<clipRect->right&&
@@ -1693,7 +1718,7 @@ void Draw_Top_TriFP32(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, in
 		for (int i = y0; i >= y1; --i, dest_addr -= mempitch)
 		{
 
-//			Mem_Set_UINT(dest_addr + ((xs + FIXP16_ROUND_UP) >> FIXP16_SHIFT), color, (((xe - xs + FIXP16_ROUND_UP) >> FIXP16_SHIFT) + 1));
+			//			Mem_Set_UINT(dest_addr + ((xs + FIXP16_ROUND_UP) >> FIXP16_SHIFT), color, (((xe - xs + FIXP16_ROUND_UP) >> FIXP16_SHIFT) + 1));
 			Mem_Set_UINT(dest_addr + FIXP_2_INT(xs), color, FIXP_2_INT((xe - xs)) + 1);
 			// xs和se都是定点数，要先转回成整数
 //			memset((UCHAR*)dest_addr + ((xs + FIXP16_ROUND_UP) >> FIXP16_SHIFT), color, (((xe - xs + FIXP16_ROUND_UP) >> FIXP16_SHIFT) + 1));
@@ -1727,8 +1752,8 @@ void Draw_Top_TriFP32(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, in
 			}
 
 			Mem_Set_UINT(dest_addr + FIXP_2_INT(xs), color, FIXP_2_INT((right - left)) + 1);
-//			Mem_Set_USHORT(dest_addr + (unsigned int)left, color, (unsigned int)(right - left + 1));
-//			memset((UCHAR*)dest_addr + (unsigned int)left, color, (unsigned int)(right - left + 1));
+			//			Mem_Set_USHORT(dest_addr + (unsigned int)left, color, (unsigned int)(right - left + 1));
+			//			memset((UCHAR*)dest_addr + (unsigned int)left, color, (unsigned int)(right - left + 1));
 		}
 
 	}
@@ -1955,7 +1980,7 @@ void Draw_Bottom_TriFP16(PRECT clipRect, int x0, int y0, int x1, int y1, int x2,
 		for (int i = y0; i <= y2; ++i, dest_addr += mempitch)		// !注意，是i<=y2 。之前没有加=号:(
 		{
 			Mem_Set_USHORT(dest_addr + FIXP_2_INT(xs), color, FIXP_2_INT((xe - xs)) + 1);
-//			memset((UCHAR*)dest_addr + ((xs + FIXP16_ROUND_UP) >> FIXP16_SHIFT), color, (((xe - xs) + FIXP16_ROUND_UP) >> FIXP16_SHIFT) + 1);
+			//			memset((UCHAR*)dest_addr + ((xs + FIXP16_ROUND_UP) >> FIXP16_SHIFT), color, (((xe - xs) + FIXP16_ROUND_UP) >> FIXP16_SHIFT) + 1);
 
 			xs += dxy_left;
 			xe += dxy_right;
@@ -1990,9 +2015,9 @@ void Draw_Bottom_TriFP16(PRECT clipRect, int x0, int y0, int x1, int y1, int x2,
 				}
 			}
 			Mem_Set_USHORT(dest_addr + left, color, (right - left + 1));
-//			memset((UCHAR*)dest_addr + left, color, (right - left + 1));
+			//			memset((UCHAR*)dest_addr + left, color, (right - left + 1));
 
-			//			dest_addr += mempitch;		// for 循环中加过了
+						//			dest_addr += mempitch;		// for 循环中加过了
 		}
 
 	}
@@ -2087,7 +2112,7 @@ void Draw_Bottom_TriFP32(PRECT clipRect, int x0, int y0, int x1, int y1, int x2,
 	{
 		for (int i = y0; i <= y2; ++i, dest_addr += mempitch)		// !注意，是i<=y2 。之前没有加=号:(
 		{
-//			memset((UCHAR*)dest_addr + ((xs + FIXP16_ROUND_UP) >> FIXP16_SHIFT), color, (((xe - xs) + FIXP16_ROUND_UP) >> FIXP16_SHIFT) + 1);
+			//			memset((UCHAR*)dest_addr + ((xs + FIXP16_ROUND_UP) >> FIXP16_SHIFT), color, (((xe - xs) + FIXP16_ROUND_UP) >> FIXP16_SHIFT) + 1);
 			Mem_Set_UINT(dest_addr + FIXP_2_INT(xs), color, FIXP_2_INT((xe - xs)) + 1);
 
 			xs += dxy_left;
@@ -2123,9 +2148,9 @@ void Draw_Bottom_TriFP32(PRECT clipRect, int x0, int y0, int x1, int y1, int x2,
 				}
 			}
 			Mem_Set_UINT(dest_addr + left, color, (right - left + 1));
-//			memset((UCHAR*)dest_addr + left, color, (right - left + 1));
+			//			memset((UCHAR*)dest_addr + left, color, (right - left + 1));
 
-			//			dest_addr += mempitch;		// for 循环中加过了
+						//			dest_addr += mempitch;		// for 循环中加过了
 		}
 
 	}
@@ -2375,8 +2400,8 @@ inline void Draw_QuadFP_2D(PRECT clipRect, int x0, int y0, int x1, int y1, int x
 {
 	Draw_TriangleFP_2D(clipRect, x0, y0, x1, y1, x3, y3, color, dest_buffer, mempitch);
 	Draw_TriangleFP_2D(clipRect, x1, y1, x2, y2, x3, y3, color, dest_buffer, mempitch);
-//	Draw_TriangleFP_2D8(clipRect, x0, y0, x1, y1, x3, y3, color, dest_buffer, mempitch);
-//	Draw_TriangleFP_2D8(clipRect, x1, y1, x2, y2, x3, y3, color, dest_buffer, mempitch);
+	//	Draw_TriangleFP_2D8(clipRect, x0, y0, x1, y1, x3, y3, color, dest_buffer, mempitch);
+	//	Draw_TriangleFP_2D8(clipRect, x1, y1, x2, y2, x3, y3, color, dest_buffer, mempitch);
 }
 
 // 四边形的顶点0,1,2,3顺时针传入，那么两个被分割的三角形为： <0,1,3> <1,2,3>
@@ -2387,8 +2412,8 @@ inline void Draw_Quad_2D(PRECT p_clipRect, int x0, int y0, int x1, int y1,
 
 	Draw_Triangle_2D(p_clipRect, x0, y0, x1, y1, x3, y3, color, dest_buffer, mempitch);
 	Draw_Triangle_2D(p_clipRect, x1, y1, x2, y2, x3, y3, color, dest_buffer, mempitch);
-//	Draw_Triangle_2D8(p_clipRect, x0, y0, x1, y1, x3, y3, color, dest_buffer, mempitch);
-//	Draw_Triangle_2D8(p_clipRect, x1, y1, x2, y2, x3, y3, color, dest_buffer, mempitch);
+	//	Draw_Triangle_2D8(p_clipRect, x0, y0, x1, y1, x3, y3, color, dest_buffer, mempitch);
+	//	Draw_Triangle_2D8(p_clipRect, x1, y1, x2, y2, x3, y3, color, dest_buffer, mempitch);
 
 }
 
@@ -3261,6 +3286,135 @@ void Draw_Clip_Line32(LPRECT clipRect, int x0, int y0, int x1, int y1, int color
 	}
 }
 
+void HLine8(LPRECT clipRect, int x1, int x2, int y, int color, UCHAR *vbuffer, int lpitch)
+{
+	if (y<clipRect->top || y>clipRect->bottom)
+		return;
+	if (x2 < x1)
+	{
+		SwapInt(x2, x1);
+	}
+	if (x1 > clipRect->right)
+		return;
+	if (x2 < clipRect->left)
+		return;
+
+	if (x1 < clipRect->left)
+		x1 = clipRect->left;
+	if (x2 > clipRect->right)
+		x2 = clipRect->right;
+
+	memset((UCHAR*)vbuffer + x1 + y * lpitch, color, x2 - x1 + 1);
+
+}
+void VLine8(LPRECT clipRect, int y1, int y2, int x, int color, UCHAR *vbuffer, int lpitch)
+{
+	if (x<clipRect->left || x>clipRect->right)
+		return;
+	if (y2 < y1)
+	{
+		SwapInt(y1, y2);
+	}
+
+	y1 = (y1 < clipRect->top) ? clipRect->top : y1;
+	y2 = (y2 > clipRect->bottom) ? clipRect->bottom : y2;
+	vbuffer += x;
+
+	for (int i = y1; i <= y2; ++i)
+	{
+		*vbuffer = color;
+		vbuffer += lpitch;
+	}
+
+}
+void HLine16(LPRECT clipRect, int x1, int x2, int y, int color, UCHAR *vbuffer, int lpitch)
+{
+	if (y<clipRect->top || y>clipRect->bottom)
+		return;
+	if (x2 < x1)
+	{
+		SwapInt(x2, x1);
+	}
+	if (x1 > clipRect->right)
+		return;
+	if (x2 < clipRect->left)
+		return;
+
+	if (x1 < clipRect->left)
+		x1 = clipRect->left;
+	if (x2 > clipRect->right)
+		x2 = clipRect->right;
+
+	Mem_Set_USHORT(((USHORT*)vbuffer) + x1 + y * (lpitch >> 1), color, (x2 - x1 + 1));
+
+}
+void VLine16(LPRECT clipRect, int y1, int y2, int x, int color, UCHAR *vbuffer, int lpitch)
+{
+	if (x<clipRect->left || x>clipRect->right)
+		return;
+	if (y2 < y1)
+	{
+		SwapInt(y1, y2);
+	}
+
+	y1 = (y1 < clipRect->top) ? clipRect->top : y1;
+	y2 = (y2 > clipRect->bottom) ? clipRect->bottom : y2;
+
+	USHORT* vb_dest = (USHORT*)vbuffer;
+	lpitch = (lpitch >> 1);
+	vb_dest += x;
+	for (int i = y1; i <= y2; ++i)
+	{
+		*vb_dest = color;
+		vb_dest += lpitch;
+	}
+
+}
+
+void HLine32(LPRECT clipRect, int x1, int x2, int y, int color, UCHAR *vbuffer, int lpitch)
+{
+	if (y<clipRect->top || y>clipRect->bottom)
+		return;
+	if (x2 < x1)
+	{
+		SwapInt(x2, x1);
+	}
+	if (x1 > clipRect->right)
+		return;
+	if (x2 < clipRect->left)
+		return;
+
+	if (x1 < clipRect->left)
+		x1 = clipRect->left;
+	if (x2 > clipRect->right)
+		x2 = clipRect->right;
+
+	Mem_Set_UINT(((UINT*)vbuffer) + x1 + y * (lpitch >> 2), color, (x2 - x1 + 1));
+
+}
+void VLine32(LPRECT clipRect, int y1, int y2, int x, int color, UCHAR *vbuffer, int lpitch)
+{
+	if (x<clipRect->left || x>clipRect->right)
+		return;
+	if (y2 < y1)
+	{
+		SwapInt(y1, y2);
+	}
+
+	y1 = (y1 < clipRect->top) ? clipRect->top : y1;
+	y2 = (y2 > clipRect->bottom) ? clipRect->bottom : y2;
+
+	UINT* vb_dest = (UINT*)vbuffer;
+	lpitch = (lpitch >> 2);
+	vb_dest += x;
+	for (int i = y1; i <= y2; ++i)
+	{
+		*vb_dest = color;
+		vb_dest += lpitch;
+	}
+
+}
+
 #pragma endregion 
 
 #pragma region Draw Polygon2D
@@ -3617,13 +3771,13 @@ void Draw_Filled_Polygon2D16(PRECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer,
 		{
 			if (x1 < x2)
 			{
-//				memset(dest_buff + (int)x1, poly->color, (int)(x2 - x1 + 1));
-				Mem_Set_USHORT(dest_buff+(int)x1, poly->color, (int)(x2 - x1 + 1));
+				//				memset(dest_buff + (int)x1, poly->color, (int)(x2 - x1 + 1));
+				Mem_Set_USHORT(dest_buff + (int)x1, poly->color, (int)(x2 - x1 + 1));
 			}
 			else
 			{
-//				memset(dest_buff + (int)x2, poly->color, (int)(x1 - x2 + 1));
-				Mem_Set_USHORT(dest_buff+ (int)x2, poly->color, (int)(x1 - x2 + 1));
+				//				memset(dest_buff + (int)x2, poly->color, (int)(x1 - x2 + 1));
+				Mem_Set_USHORT(dest_buff + (int)x2, poly->color, (int)(x1 - x2 + 1));
 			}
 			dest_buff += mempitch;
 			x1 += dxy1;
@@ -3798,13 +3952,13 @@ void Draw_Filled_Polygon2D32(PRECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer,
 		{
 			if (x1 < x2)
 			{
-//				memset(dest_buff + (int)x1, poly->color, (int)(x2 - x1 + 1));
-				Mem_Set_UINT(dest_buff+(int)x1, poly->color, (int)(x2 - x1 + 1));
+				//				memset(dest_buff + (int)x1, poly->color, (int)(x2 - x1 + 1));
+				Mem_Set_UINT(dest_buff + (int)x1, poly->color, (int)(x2 - x1 + 1));
 			}
 			else
 			{
-//				memset(dest_buff + (int)x2, poly->color, (int)(x1 - x2 + 1));
-				Mem_Set_UINT(dest_buff+ (int)x2, poly->color, (int)(x1 - x2 + 1));
+				//				memset(dest_buff + (int)x2, poly->color, (int)(x1 - x2 + 1));
+				Mem_Set_UINT(dest_buff + (int)x2, poly->color, (int)(x1 - x2 + 1));
 			}
 			dest_buff += mempitch;
 			x1 += dxy1;
@@ -4134,7 +4288,7 @@ UCHAR *DDraw_Lock_Surface(LPDIRECTDRAWSURFACE7 lpdds, int *lpitch)
 	lpdds->Lock(NULL, &ddsd, DDLOCK_WAIT | DDLOCK_SURFACEMEMORYPTR, NULL);
 	if (lpitch)
 	{
-	*lpitch = ddsd.lPitch;
+		*lpitch = ddsd.lPitch;
 	}
 	return (UCHAR*)ddsd.lpSurface;
 }
@@ -4204,63 +4358,78 @@ int DDraw_Init_FunctionPtrs(void)
 		Draw_Polygon2D = Draw_Polygon2D8;
 		Draw_Pixel = Draw_Pixel8;
 
+		HLine = HLine8;
+		VLine = VLine8;
+
 		RGBColor = RGBColor8Bit;
 	}
 	else
-	if (dd_pixel_format == DD_PIXEL_FORMAT555)
-	{
-		RGB16Bit = RGB16Bit555;
-		RGBColor = RGBColor16Bit555;
-		Draw_Triangle_2D = Draw_Triangle_2D16;
-		Draw_TriangleFP_2D = Draw_TriangleFP_2D16;
-		Draw_Filled_Polygon2D = Draw_Filled_Polygon2D16;
-		Draw_Polygon2D = Draw_Polygon2D16;
+		if (dd_pixel_format == DD_PIXEL_FORMAT555)
+		{
+			RGB16Bit = RGB16Bit555;
+			RGBColor = RGBColor16Bit555;
+			Draw_Triangle_2D = Draw_Triangle_2D16;
+			Draw_TriangleFP_2D = Draw_TriangleFP_2D16;
+			Draw_Filled_Polygon2D = Draw_Filled_Polygon2D16;
+			Draw_Polygon2D = Draw_Polygon2D16;
 
-		Draw_Line = Draw_Line16;
-		Draw_Clip_Line = Draw_Clip_Line16;
-		Draw_Pixel = Draw_Pixel16;
-	}
-	else if (dd_pixel_format == DD_PIXEL_FORMAT565)
-	{
-		RGB16Bit = RGB16Bit565;
-		RGBColor = RGBColor16Bit565;
+			Draw_Line = Draw_Line16;
+			Draw_Clip_Line = Draw_Clip_Line16;
+			Draw_Pixel = Draw_Pixel16;
 
-		Draw_Triangle_2D = Draw_Triangle_2D16;
-		Draw_TriangleFP_2D = Draw_TriangleFP_2D16;
-		Draw_Filled_Polygon2D = Draw_Filled_Polygon2D16;
-		Draw_Polygon2D = Draw_Polygon2D16;
+			HLine = HLine16;
+			VLine = VLine16;
+		}
+		else if (dd_pixel_format == DD_PIXEL_FORMAT565)
+		{
+			RGB16Bit = RGB16Bit565;
+			RGBColor = RGBColor16Bit565;
 
-		Draw_Line = Draw_Line16;
-		Draw_Clip_Line = Draw_Clip_Line16;
-		Draw_Pixel = Draw_Pixel16;
+			Draw_Triangle_2D = Draw_Triangle_2D16;
+			Draw_TriangleFP_2D = Draw_TriangleFP_2D16;
+			Draw_Filled_Polygon2D = Draw_Filled_Polygon2D16;
+			Draw_Polygon2D = Draw_Polygon2D16;
 
-	}
-	else if (dd_pixel_format == DD_PIXEL_FORMAT888)
-	{
-		Draw_Triangle_2D = Draw_Triangle_2D32;
-		Draw_TriangleFP_2D = Draw_TriangleFP_2D32;
-		Draw_Filled_Polygon2D = Draw_Filled_Polygon2D32;
-		Draw_Polygon2D = Draw_Polygon2D32;
+			Draw_Line = Draw_Line16;
+			Draw_Clip_Line = Draw_Clip_Line16;
+			Draw_Pixel = Draw_Pixel16;
 
-		RGBColor = RGBAColor32Bit;
+			HLine = HLine16;
+			VLine = VLine16;
 
-		Draw_Line = Draw_Line32;
-		Draw_Clip_Line = Draw_Clip_Line32;
-		Draw_Pixel = Draw_Pixel32;
-	}
-	else if (dd_pixel_format == DD_PIXEL_FORMATALPHA888)
-	{
-		Draw_Triangle_2D = Draw_Triangle_2D32;
-		Draw_TriangleFP_2D = Draw_TriangleFP_2D32;
-		Draw_Filled_Polygon2D = Draw_Filled_Polygon2D32;
-		Draw_Polygon2D = Draw_Polygon2D32;
+		}
+		else if (dd_pixel_format == DD_PIXEL_FORMAT888)
+		{
+			Draw_Triangle_2D = Draw_Triangle_2D32;
+			Draw_TriangleFP_2D = Draw_TriangleFP_2D32;
+			Draw_Filled_Polygon2D = Draw_Filled_Polygon2D32;
+			Draw_Polygon2D = Draw_Polygon2D32;
 
-		RGBColor = RGBAColor32Bit;
+			RGBColor = RGBAColor32Bit;
 
-		Draw_Line = Draw_Line32;
-		Draw_Clip_Line = Draw_Clip_Line32;
-		Draw_Pixel = Draw_Pixel32;
-	}
+			Draw_Line = Draw_Line32;
+			Draw_Clip_Line = Draw_Clip_Line32;
+			Draw_Pixel = Draw_Pixel32;
+
+			HLine = HLine32;
+			VLine = VLine32;
+		}
+		else if (dd_pixel_format == DD_PIXEL_FORMATALPHA888)
+		{
+			Draw_Triangle_2D = Draw_Triangle_2D32;
+			Draw_TriangleFP_2D = Draw_TriangleFP_2D32;
+			Draw_Filled_Polygon2D = Draw_Filled_Polygon2D32;
+			Draw_Polygon2D = Draw_Polygon2D32;
+
+			RGBColor = RGBAColor32Bit;
+
+			Draw_Line = Draw_Line32;
+			Draw_Clip_Line = Draw_Clip_Line32;
+			Draw_Pixel = Draw_Pixel32;
+
+			HLine = HLine32;
+			VLine = VLine32;
+		}
 	return 1;
 }
 

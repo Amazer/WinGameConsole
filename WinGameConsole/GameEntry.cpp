@@ -35,13 +35,14 @@ int GameEntry::Game_Main()
 
 	DDraw_Lock_BackSurface();
 
-	for (int i = 0; i < 5000; ++i)
-	{
-		Draw_Pixel(rand() % screen_width, rand() % screen_height, (int)RGBColor(rand()%255, rand()%255, 0, 0), back_buffer, back_lpitch);
-	}
+	VLine(&default_clipRect, 100, 400, 100, (int)RGBColor(255, 0, 0, 0), back_buffer, back_lpitch);
+	VLine(&default_clipRect, 100, 400, 200, (int)RGBColor(0,255,  0, 0), back_buffer, back_lpitch);
+	VLine(&default_clipRect, 100, 400, 300, (int)RGBColor(0, 0, 255, 0), back_buffer, back_lpitch);
+
+	HLine(&default_clipRect, 100, 400, 100, (int)RGBColor(255, 0, 0, 0), back_buffer, back_lpitch);
+	HLine(&default_clipRect, 100, 400, 200, (int)RGBColor(0, 255, 0, 0), back_buffer, back_lpitch);
+	HLine(&default_clipRect, 100, 400, 300, (int)RGBColor(0, 0, 255, 0), back_buffer, back_lpitch);
 	
-
-
 	DDraw_Unlock_BackSurface();
 
 	DDraw_Flip();
