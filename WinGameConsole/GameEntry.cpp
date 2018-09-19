@@ -6,13 +6,16 @@
 #include <ddraw.h>
 #include <math.h>
 
+
 #include "cyclibdraw.h"
 #include "GameEntry.h"
+
 
 POLYGON2D poly;
 
 int GameEntry::Game_Init()
 {
+	Write_Error("Game_Init:call by GameEntry\n");
 	poly.state = 1;
 	poly.color = (int)RGBColor(255, 150, 0, 0);
 	poly.num_verts = 3;

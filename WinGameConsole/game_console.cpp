@@ -166,6 +166,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 int Game_Init(void *params, int num_parms)
 {
+	Open_Error_File("Error_File.txt");
+
 	DDraw_Init(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_BPP, !FULL_SCREEN_MODE);
 
 	On_GameInit();
@@ -182,6 +184,8 @@ int Game_Exit(void *params, int num_parms)
 {
 	On_GameExit();
 	DDraw_ShutDown();
+
+	Close_Error_File();
 	return 1;
 }
 

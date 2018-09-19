@@ -24,6 +24,11 @@
 #pragma region 全局变量
 
 // externals///////////////////
+// 错误文件指针
+FILE *fp_error = NULL;
+// 错误文件名称
+char error_filename[80];
+
 extern HWND main_window_handle;
 extern HINSTANCE main_instance;
 
@@ -97,7 +102,7 @@ void(*Draw_Clip_Line)(LPRECT clipRect, int x0, int y0, int x1, int y1, int color
 void(*Draw_Pixel)(int x, int y, int color, UCHAR *buffer, int mempitch);
 
 void(*HLine)(LPRECT clipRect, int x1, int x2, int y, int color, UCHAR *vbuffer, int lpitch);
-void (*VLine)(LPRECT clipRect,int y1,int y2,int x,int color, UCHAR *vbuffer, int lpitch);
+void(*VLine)(LPRECT clipRect, int y1, int y2, int x, int color, UCHAR *vbuffer, int lpitch);
 
 ///////////// 函数指针 edn///////////////////////////
 
@@ -4541,7 +4546,80 @@ LPDIRECTDRAWCLIPPER DDraw_Attach_Clipper(LPDIRECTDRAWSURFACE7 lpdds, int num_rec
 	free(region_data);
 	return lpddclipper;
 }
+#pragma endregion
 
+#pragma region Log 相关
+// error functions
+int Open_Error_File(const char *filename, FILE *fp_override)
+{
+	if (fp_override)
+	{
+		fp_error = fp_override;
+	}
+	else
+	{
+		if ((fp_error = fopen(filename, "w")) == NULL)
+		{
+			return 0;
+		}
+	}
+	struct _timeb timebuffer;
+	char *timeline;
+	char timestring[280];
 
+	_ftime(&timebuffer);
+	timeline = ctime(&(timebuffer.time));
+	sprintf(timestring, "%.19s.%hu, %s", timeline, timebuffer.millitm, &timeline[20]);
+
+	Write_Error("\n== Opening Error Output File (%s) on %s\n", filename, timestring);
+
+	if (!fp_override)
+	{
+		fclose(fp_error);
+		if ((fp_error = fopen(filename, "a+")) == NULL)
+		{
+			return 0;
+		}
+	}
+	return 1;
+
+}
+int Close_Error_File(void)
+{
+	if (fp_error)
+	{
+
+		Write_Error("\n== Closing Error Output File.");
+
+		if (fp_error != stdout || fp_error != stderr)
+		{
+			fclose(fp_error);
+		}
+		fp_error = NULL;
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+int Write_Error(const char *string, ...)
+{
+	char buffer[256];
+	va_list arglist;
+
+	if (!string || !fp_error)
+	{
+		return 0;
+	}
+
+	va_start(arglist, string);
+	vsprintf(buffer, string, arglist);
+	va_end(arglist);
+
+	fprintf(fp_error, buffer);
+	fflush(fp_error);
+	return 1;
+
+}
 
 #pragma endregion

@@ -413,14 +413,26 @@ extern void Draw_Filled_Polygon2D32(PRECT clipRect, POLYGON2D_PTR poly, UCHAR *v
 #pragma region 碰撞检测部分的函数
 
 // 快速计算<x,y>到<0,0>的距离。使用了泰勒展开式。（没有明白）
-int Fast_Distance_2D(int x, int y);
+extern int Fast_Distance_2D(int x, int y);
 
-int Find_Bounding_Box_Poly2D(POLYGON2D_PTR poly, BOUND2DF_PTR bound);
+extern int Find_Bounding_Box_Poly2D(POLYGON2D_PTR poly, BOUND2DF_PTR bound);
 
+#pragma endregion
+
+#pragma region Log 相关
+// error functions
+extern int Open_Error_File(const char *filename, FILE *fp_override=NULL);
+extern int Close_Error_File(void);
+extern int Write_Error(const char *string, ...);
 #pragma endregion
 
 
 #pragma region 全局变量
+
+// 错误文件指针
+extern FILE *fp_error;
+// 错误文件名称
+extern char error_filename[80];
 
 extern LPDIRECTDRAW7 lpdd;
 extern LPDIRECTDRAWSURFACE7 lpddsprimary;		// 主显示表面(主表面)
