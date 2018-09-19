@@ -309,7 +309,9 @@ int Scan_Image_Bitmap24(BITMAP_FILE_PTR bitmap,     // bitmap file to scan image
 
 #pragma region Draw Text
 
+// ÔÚDirectDrawÖÐ»­ÎÄ×Ö color:RGB(r,g,b)
 extern int Draw_Text_GDI_IN_DD(const char * txt, int x, int y, COLORREF color, LPDIRECTDRAWSURFACE7 lpdds);
+
 #pragma endregion
 
 #pragma region Draw Lines

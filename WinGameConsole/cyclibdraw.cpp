@@ -2755,7 +2755,6 @@ int Scan_Image_Bitmap24(BITMAP_FILE_PTR bitmap,     // bitmap file to scan image
 
 #pragma region Draw Text
 
-// ÔÚDirectDrawÖÐ»­ÎÄ×Ö
 int Draw_Text_GDI_IN_DD(const char * txt, int x, int y, COLORREF color, LPDIRECTDRAWSURFACE7 lpdds)
 {
 	HDC xdc;
@@ -2770,6 +2769,8 @@ int Draw_Text_GDI_IN_DD(const char * txt, int x, int y, COLORREF color, LPDIRECT
 	return 1;
 
 }
+
+
 #pragma endregion
 
 #pragma region Draw Lines

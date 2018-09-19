@@ -17,6 +17,7 @@
 #define SCREEN_HEIGHT 480	//480 		// 屏幕高度   
 
 #define FULL_SCREEN_MODE 1		// 是否为全屏模式
+//#define FULL_SCREEN_MODE 0		// 是否为全屏模式
 
 //#define SCREEN_BPP 8			// 色彩位深  窗口模式不起作用
 //#define SCREEN_BPP 16			// 色彩位深  窗口模式不起作用
