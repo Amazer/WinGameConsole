@@ -355,22 +355,31 @@ void Draw_Triangle_2D32(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, 
 
 
 // 定点数的填充平顶三角形
-void Draw_Top_TriFP(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR *dest_buffer, int mempitch);
+void Draw_Top_TriFP8(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR *dest_buffer, int mempitch);
+void Draw_Top_TriFP16(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR *dest_buffer, int mempitch);
+void Draw_Top_TriFP32(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR *dest_buffer, int mempitch);
 
-void Draw_Bottom_TriFP(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR *dest_buffer, int mempitch);
+void Draw_Bottom_TriFP8(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR *dest_buffer, int mempitch);
+void Draw_Bottom_TriFP16(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR *dest_buffer, int mempitch);
+void Draw_Bottom_TriFP32(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR *dest_buffer, int mempitch);
 
-void Draw_TriangleFP_2D(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR *dest_buffer, int mempitch);
+void Draw_TriangleFP_2D8(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR *dest_buffer, int mempitch);
+void Draw_TriangleFP_2D16(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR *dest_buffer, int mempitch);
+void Draw_TriangleFP_2D32(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int color, UCHAR *dest_buffer, int mempitch);
 
 // 定点数，填充四边形
-inline void Draw_QuadFP_2D(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int x3, int y3, int color, UCHAR *dest_buffer, int mempitch);
+extern inline void Draw_QuadFP_2D(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2, int x3, int y3, int color, UCHAR *dest_buffer, int mempitch);
 
 // 四边形的顶点0,1,2,3顺时针传入，那么两个被分割的三角形为： <0,1,3> <1,2,3>
-inline void Draw_Quad_2D(PRECT p_clipRect, int x0, int y0, int x1, int y1,
+extern inline void Draw_Quad_2D(PRECT p_clipRect, int x0, int y0, int x1, int y1,
 	int x2, int y2, int x3, int y3,
 	int color, UCHAR *dest_buffer, int mempitch);
 
 // 填充多边形
-void Draw_Filled_Polygon2D(PRECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, int mempitch);
+extern void (*Draw_Filled_Polygon2D)(PRECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, int mempitch);
+extern void Draw_Filled_Polygon2D8(PRECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, int mempitch);
+extern void Draw_Filled_Polygon2D16(PRECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, int mempitch);
+extern void Draw_Filled_Polygon2D32(PRECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, int mempitch);
 
 #pragma endregion
 
@@ -439,6 +448,10 @@ extern USHORT RGB16Bit555(int r, int g, int b);
 
 // draw triangle_2d 的函数指针
 extern void(*Draw_Triangle_2D)(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2,
+	int color, UCHAR *dest_buffer, int mempitch);
+
+// draw triangle fixed point 2D 的函数指针
+extern void(*Draw_TriangleFP_2D)(PRECT clipRect, int x0, int y0, int x1, int y1, int x2, int y2,
 	int color, UCHAR *dest_buffer, int mempitch);
 
 #pragma endregion 全局变量
