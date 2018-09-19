@@ -94,6 +94,8 @@ int (*Draw_Line)(int x0, int y0, int x1, int y1, int color, UCHAR *vb_start, int
 
 void (*Draw_Clip_Line)(LPRECT clipRect, int x0, int y0, int x1, int y1, int color, UCHAR *vb_start, int lpitch);
 
+void (*Draw_Pixel)(int x, int y, int color, UCHAR *buffer, int mempitch);
+
 ///////////// 函数指针 edn///////////////////////////
 
 #pragma endregion 全局变量
@@ -132,50 +134,22 @@ void* RGBColor16Bit565(int r, int g, int b, int a)
 }
 
 
-void Plot_Pixel32(int x, int y, int alpha, int red, int green, int blue, UINT *video_buffer, int lpitch32)
+
+inline void Draw_Pixel32(int x, int y, int color, UCHAR *video_buffer, int lpitch)
 {
-	video_buffer[x + y * lpitch32] = __RGB32BIT(alpha, red, green, blue);
+	((UINT*)video_buffer)[x + y * (lpitch >> 2)] = color;
 }
 
-void Plot_Pixel32(int x, int y, UINT color, UINT *video_buffer, int lpitch32)
-{
-	video_buffer[x + y * lpitch32] = color;
-}
-
-void Plot8(int x, int y,
-	UCHAR color,
-	UCHAR *buffer,
-	int mempitch)
+inline void Draw_Pixel8(int x, int y, int color, UCHAR *buffer, int mempitch)
 {
 	buffer[x + y * mempitch] = color;
 }
 
-void Plot16BIT555(int x, int y,
-	UCHAR red,
-	UCHAR green,
-	UCHAR blue,
-	USHORT *buffer,
-	int mempitch)
+inline void Draw_Pixel16(int x, int y,int color, UCHAR *buffer, int mempitch)
 {
-	buffer[x + y * (mempitch >> 1)] = __RGB16BIT555(red, green, blue);
+	((USHORT*)buffer)[x + y * (mempitch >> 1)] = color;
 }
 
-void Plot16BIT565(int x, int y,
-	UCHAR red,
-	UCHAR green,
-	UCHAR blue,
-	USHORT *buffer,
-	int mempitch)
-{
-	buffer[x + y * (mempitch >> 1)] = __RGB16BIT565(red, green, blue);
-}
-void Plot16BIT565(int x, int y,
-	USHORT color,
-	USHORT *buffer,
-	int mempitch)
-{
-	buffer[x + y * (mempitch >> 1)] = color;
-}
 UINT RandomRGB16BIT565()
 {
 	return __RGB16BIT565(rand() % 255, rand() % 255, rand() % 255);
@@ -4228,6 +4202,7 @@ int DDraw_Init_FunctionPtrs(void)
 		Draw_Clip_Line = Draw_Clip_Line8;
 
 		Draw_Polygon2D = Draw_Polygon2D8;
+		Draw_Pixel = Draw_Pixel8;
 
 		RGBColor = RGBColor8Bit;
 	}
@@ -4243,6 +4218,7 @@ int DDraw_Init_FunctionPtrs(void)
 
 		Draw_Line = Draw_Line16;
 		Draw_Clip_Line = Draw_Clip_Line16;
+		Draw_Pixel = Draw_Pixel16;
 	}
 	else if (dd_pixel_format == DD_PIXEL_FORMAT565)
 	{
@@ -4256,6 +4232,7 @@ int DDraw_Init_FunctionPtrs(void)
 
 		Draw_Line = Draw_Line16;
 		Draw_Clip_Line = Draw_Clip_Line16;
+		Draw_Pixel = Draw_Pixel16;
 
 	}
 	else if (dd_pixel_format == DD_PIXEL_FORMAT888)
@@ -4269,6 +4246,7 @@ int DDraw_Init_FunctionPtrs(void)
 
 		Draw_Line = Draw_Line32;
 		Draw_Clip_Line = Draw_Clip_Line32;
+		Draw_Pixel = Draw_Pixel32;
 	}
 	else if (dd_pixel_format == DD_PIXEL_FORMATALPHA888)
 	{
@@ -4281,6 +4259,7 @@ int DDraw_Init_FunctionPtrs(void)
 
 		Draw_Line = Draw_Line32;
 		Draw_Clip_Line = Draw_Clip_Line32;
+		Draw_Pixel = Draw_Pixel32;
 	}
 	return 1;
 }

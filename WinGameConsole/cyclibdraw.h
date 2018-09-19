@@ -199,13 +199,12 @@ extern inline UINT RandomRGB16BIT565();
 extern inline UINT RandomRGBA32();
 #pragma endregion  随机颜色
 
-#pragma region 画像素
-extern inline void Plot_Pixel32(int x, int y, int alpha, int red, int green, int blue, UINT *video_buffer, int lpitch32);
-extern inline void Plot_Pixel32(int x, int y, UINT color, UINT *video_buffer, int lpitch32);
-extern inline void Plot8(int x, int y, UCHAR color, UCHAR *buffer, int mempitch);
-extern inline void Plot16BIT555(int x, int y, UCHAR red, UCHAR green, UCHAR blue, USHORT *buffer, int mempitch);
-extern inline void Plot16BIT565(int x, int y, UCHAR red, UCHAR green, UCHAR blue, USHORT *buffer, int mempitch);
-extern inline void Plot16BIT565(int x, int y, USHORT color, USHORT *buffer, int mempitch);
+#pragma region Draw Pixel 2D
+extern void (*Draw_Pixel)(int x, int y, int color, UCHAR *buffer, int mempitch);
+extern inline void Draw_Pixel8(int x, int y, int color, UCHAR *buffer, int mempitch);
+extern inline void Draw_Pixel16(int x, int y, int color, UCHAR *buffer, int mempitch);
+extern inline void Draw_Pixel32(int x, int y, int color, UCHAR *video_buffer, int lpitch);
+
 #pragma endregion 画像素
 
 #pragma region 裁剪
@@ -337,6 +336,7 @@ extern int Draw_Polygon2D16(LPRECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer,
 extern int Draw_Polygon2D32(LPRECT clipRect, POLYGON2D_PTR poly, UCHAR *vbuffer, int lpitch);
 
 #pragma endregion
+
 
 #pragma region 三角形光栅化和多边形填充
 

@@ -35,7 +35,12 @@ int GameEntry::Game_Main()
 
 	DDraw_Lock_BackSurface();
 
-	Draw_Polygon2D(&default_clipRect, &poly, back_buffer, back_lpitch);
+	for (int i = 0; i < 5000; ++i)
+	{
+		Draw_Pixel(rand() % screen_width, rand() % screen_height, (int)RGBColor(rand()%255, rand()%255, 0, 0), back_buffer, back_lpitch);
+	}
+	
+
 
 	DDraw_Unlock_BackSurface();
 
