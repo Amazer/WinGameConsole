@@ -2707,6 +2707,56 @@ int Scan_Image_Bitmap8(BITMAP_FILE_PTR bitmap,     // bitmap file to scan image 
 }
 
 // 将bitmap从cy行，cx个sprite的内容渲染到lpdds
+int Scan_Image_Bitmap16(BITMAP_FILE_PTR bitmap,     // bitmap file to scan image data from
+	LPDIRECTDRAWSURFACE7 lpdds, // surface to hold data
+	int cx, int cy)             // cell to scan image from
+{
+	USHORT * dest_ptr;
+	DDSURFACEDESC2 ddsd;
+	DDRAW_INIT_STRUCT(ddsd);
+
+	lpdds->Lock(NULL, &ddsd, DDLOCK_WAIT | DDLOCK_SURFACEMEMORYPTR, NULL);
+
+	// 计算在surface中的开始的位置(平移到相对位置的(0,0)点)
+	// 因为使用的是专门用于加载一帧动画的内存，ddsd的宽度和高度都是提前设定好的一个sprite的宽度和高度（72x80）
+	// 有1个像素的空白
+	int gwidth = ddsd.dwWidth;
+	int gheight = ddsd.dwHeight;
+	int bitmapWidth = bitmap->bitmapInfoHeader.biWidth;
+
+	cx = cx * (gwidth + 1) + 1;		// x
+	cy = cy * (gheight + 1) + 1;		// y
+
+
+	// 16位位图，一个像素占2个字节
+	dest_ptr = (USHORT *)ddsd.lpSurface;
+
+	int xoff = cx * 2;
+	int yoff = cy * bitmapWidth * 2;
+
+	for (int y = 0; y < gheight; ++y)
+	{
+		for (int x = 0; x < gwidth; ++x)
+		{
+
+			int off = xoff + yoff + y * bitmapWidth * 2 + x * 2;
+
+			// 逐像素转换
+			UCHAR blue = bitmap->buffer[off];
+			UCHAR green = bitmap->buffer[off + 1];
+			UCHAR red = bitmap->buffer[off + 2];
+
+			int pixel = __RGB16BIT565(red, green, blue); 
+			dest_ptr[(y*(ddsd.lPitch >> 1)) + x] = pixel;
+		}
+	}
+
+	lpdds->Unlock(NULL);
+
+	return 1;
+}
+
+// 将bitmap从cy行，cx个sprite的内容渲染到lpdds
 int Scan_Image_Bitmap24(BITMAP_FILE_PTR bitmap,     // bitmap file to scan image data from
 	LPDIRECTDRAWSURFACE7 lpdds, // surface to hold data
 	int cx, int cy)             // cell to scan image from

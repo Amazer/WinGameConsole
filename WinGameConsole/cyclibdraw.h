@@ -300,6 +300,9 @@ int Unload_Bitmap_Flie(BITMAP_FILE_PTR bitmap);
 int Scan_Image_Bitmap8(BITMAP_FILE_PTR bitmap,     // bitmap file to scan image data from
 	LPDIRECTDRAWSURFACE7 lpdds, // surface to hold data
 	int cx, int cy);             // cell to scan image from
+int Scan_Image_Bitmap16(BITMAP_FILE_PTR bitmap,     // bitmap file to scan image data from
+	LPDIRECTDRAWSURFACE7 lpdds, // surface to hold data
+	int cx, int cy);             // cell to scan image from
 
 int Scan_Image_Bitmap24(BITMAP_FILE_PTR bitmap,     // bitmap file to scan image data from
 	LPDIRECTDRAWSURFACE7 lpdds, // surface to hold data
