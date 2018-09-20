@@ -19,8 +19,6 @@ int GameEntry::Game_Init()
 	
 	const char* text = "xxxxxxxxxxxddddddd\n";
 	Debug::DebugPrintF(text);
-	Debug::OpenLogFile();
-	Debug::Log("cyc log,hhhhh");
 	Write_Error("Game_Init:call by GameEntry\n");
 	poly.state = 1;
 	poly.color = (int)RGBColor(255, 150, 0, 0);
@@ -63,6 +61,5 @@ int GameEntry::Game_Main()
 
 int GameEntry::Game_Shutdown()
 {
-	Debug::CloseLogFile();
 	return 0;
 }
