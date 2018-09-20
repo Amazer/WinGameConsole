@@ -88,6 +88,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>/wd4430 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>ddraw.lib;dxguid.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -123,11 +124,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="cyclibdraw.cpp" />
+    <ClCompile Include="Debug.cpp" />
     <ClCompile Include="GameEntry.cpp" />
     <ClCompile Include="game_console.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cyclibdraw.h" />
+    <ClInclude Include="Debug.h" />
     <ClInclude Include="GameEntry.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

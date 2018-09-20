@@ -24,12 +24,18 @@
     <ClCompile Include="GameEntry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Debug.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cyclibdraw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GameEntry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Debug.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
