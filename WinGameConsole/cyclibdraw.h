@@ -13,6 +13,13 @@
 
 // bitmap相关
 #define BITMAP_ID 0x4D42		// bitmap类型id
+#define BITMAP_STATE_DEAD 0
+#define BITMAP_STATE_ALIVE 1
+#define BITMAP_STATE_DYING 2
+#define BITMAP_ATTR_LOADED 128
+
+#define BITMAP_EXTRACT_MODE_CELL 0		// 单元格模式(从一整张bitmap中，分隔出image. 认为bitmap中的image单元格之间有1像素的边界)
+#define BITMAP_EXTRACT_MODE_ABS 1		// 绝对模式(从一张bitmap中，加载出指定位置的image)
 
 // 像素格式相关
 #define DD_PIXEL_FORMAT8        8
@@ -170,7 +177,37 @@ typedef struct BITMAP_FILE_TAG
 	UCHAR *buffer;							// 位图像素数据
 }BITMAP_FILE, *BITMAP_FILE_PTR;
 
+// 平铺图像块
+typedef struct TILE_TYP
+{
+	int x, y;			// 平铺矩阵中的位置
+	int index;			// 在bitmap中的index
+	int flags;			// 
 
+
+}TILE,*TILE_PTR;
+
+// 平铺一整屏幕的图块
+typedef struct TILED_IMAGE_TYP
+{
+	int rows;
+	int columns;
+	TILE_PTR tiles;
+
+}TILED_IMAGE,*TILED_IMAGE_PTR;
+
+// 存储bitmap像素(图像)
+typedef struct BITMAP_IMAGE_TYP
+{
+	int state;
+	int attr;
+	int x, y;				// 图像位置
+	int width, height;		// 图像的尺寸
+	int num_bytes;			// 总字节数
+	int bpp;				// 每像素的位数
+	UCHAR *buffer;			// bitmpa 的像素
+
+}BITMAP_IMAGE,*BITMAP_IMAGE_PTR;
 
 // blinking light structure
 typedef struct BLINKER_TYP
@@ -307,6 +344,26 @@ int Scan_Image_Bitmap16(BITMAP_FILE_PTR bitmap,     // bitmap file to scan image
 int Scan_Image_Bitmap24(BITMAP_FILE_PTR bitmap,     // bitmap file to scan image data from
 	LPDIRECTDRAWSURFACE7 lpdds, // surface to hold data
 	int cx, int cy);             // cell to scan image from
+
+// 给定尺寸在指定位置创建8位16位24位系统内存位图(分配了buffer空间，buffer内容都为0)
+int Create_Bitmap(BITMAP_IMAGE_PTR image, int x, int y, int width, int height, int bpp = 8);
+
+int Destroy_Bitmap(BITMAP_IMAGE_PTR image);
+
+int Load_Image_Bitmap8(BITMAP_IMAGE_PTR image, BITMAP_FILE_PTR bitmap, int cx, int cy, int mode);
+
+int Load_Image_Bitmap16(BITMAP_IMAGE_PTR image, BITMAP_FILE_PTR bitmap, int cx, int cy, int mode);
+
+int Load_Image_Bitmap24(BITMAP_IMAGE_PTR image, BITMAP_FILE_PTR bitmap, int cx, int cy, int mode);
+
+// 画image到显存或内存。transparent表示是否拷贝透明颜色。1为不拷贝透明颜色
+int Draw_Bitmap_Image8(BITMAP_IMAGE_PTR image, UCHAR * dest_buffer, int lpitch, int transparent);
+
+// 画image到显存或内存。transparent表示是否拷贝透明颜色。1为不拷贝透明颜色
+int Draw_Bitmap_Image16(BITMAP_IMAGE_PTR image, UCHAR * dest_buffer, int lpitch, int transparent);
+
+// 画image到显存或内存。transparent表示是否拷贝透明颜色。1为不拷贝透明颜色
+int Draw_Bitmap_Image24(BITMAP_IMAGE_PTR image, UCHAR * dest_buffer, int lpitch, int transparent);
 
 #pragma endregion
 

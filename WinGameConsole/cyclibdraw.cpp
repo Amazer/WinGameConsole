@@ -20,6 +20,7 @@
 #include <ddraw.h>
 
 #include "cyclibdraw.h"
+#include "Debug.h"
 
 #pragma region 全局变量
 
@@ -2584,7 +2585,7 @@ int Load_Bitmap_File(BITMAP_FILE_PTR bitmap, const char* filename)
 
 	if ((file_handle = OpenFile(filename, &file_data, OF_READ)) == -1)
 	{
-		printf("load_bitmap_file error! openFile failed!!");
+		Debug::DebugPrintF("load_bitmap_file error! openFile failed!!");
 		return 0;
 	}
 
@@ -2595,7 +2596,7 @@ int Load_Bitmap_File(BITMAP_FILE_PTR bitmap, const char* filename)
 	if (bitmap->bitmapfileHeader.bfType != BITMAP_ID)
 	{
 		_lclose(file_handle);
-		printf("load_bitmap_file error! read headinfo failed!!");
+		Debug::DebugPrintF("load_bitmap_file error! read headinfo failed!!");
 		return 0;
 	}
 
@@ -2635,7 +2636,7 @@ int Load_Bitmap_File(BITMAP_FILE_PTR bitmap, const char* filename)
 		if (!(bitmap->buffer = (UCHAR*)malloc(bitmap->bitmapInfoHeader.biSizeImage)))
 		{
 			_lclose(file_handle);
-			printf("load_bitmap_file error! malloc failed!!");
+			Debug::DebugPrintF("load_bitmap_file error! malloc failed!!");
 			return 0;
 		}
 
@@ -2645,7 +2646,7 @@ int Load_Bitmap_File(BITMAP_FILE_PTR bitmap, const char* filename)
 	}
 	else		// 其他位的像素（serious problem) (试试32位？？)
 	{
-		printf("load_bitmap_file error! not 8pixel !!");
+		Debug::DebugPrintF("load_bitmap_file error! not 8pixel !! bitCount: %d", bitmap->bitmapInfoHeader.biBitCount);
 		return 0;
 	}
 
@@ -2746,7 +2747,7 @@ int Scan_Image_Bitmap16(BITMAP_FILE_PTR bitmap,     // bitmap file to scan image
 			UCHAR green = bitmap->buffer[off + 1];
 			UCHAR red = bitmap->buffer[off + 2];
 
-			int pixel = __RGB16BIT565(red, green, blue); 
+			int pixel = __RGB16BIT565(red, green, blue);
 			dest_ptr[(y*(ddsd.lPitch >> 1)) + x] = pixel;
 		}
 	}
@@ -2788,7 +2789,6 @@ int Scan_Image_Bitmap24(BITMAP_FILE_PTR bitmap,     // bitmap file to scan image
 	{
 		for (int x = 0; x < gwidth; ++x)
 		{
-
 			int off = xoff + yoff + y * bitmapWidth * 3 + x * 3;
 
 			// 逐像素转换
@@ -2803,6 +2803,260 @@ int Scan_Image_Bitmap24(BITMAP_FILE_PTR bitmap,     // bitmap file to scan image
 
 	lpdds->Unlock(NULL);
 
+	return 1;
+}
+
+int Create_Bitmap(BITMAP_IMAGE_PTR image, int x, int y, int width, int height, int bpp)
+{
+	//	bpp = (bpp == 24) ? 32 : bpp;
+
+	int pixel_per_bytes = bpp >> 3;
+	if (!(image->buffer = (UCHAR*)malloc(width*height*(bpp >> 3))))
+	{
+		return 0;
+	}
+	image->state = BITMAP_STATE_ALIVE;
+	image->attr = 0;
+	image->height = height;
+	image->width = width;
+	image->num_bytes = (width*height*(bpp >> 3));
+	image->x = x;
+	image->y = y;
+	image->bpp = bpp;
+
+	memset(image->buffer, 0, image->num_bytes);
+	return 1;
+
+}
+
+int Destroy_Bitmap(BITMAP_IMAGE_PTR image)
+{
+	if (!image || !image->buffer)
+		return 0;
+	free(image->buffer);
+	image->buffer = NULL;
+	memset(image, 0, sizeof(BITMAP_IMAGE));
+	return 1;
+}
+
+int Load_Image_Bitmap8(BITMAP_IMAGE_PTR image, BITMAP_FILE_PTR bitmap, int cx, int cy, int mode)
+{
+	if (!image)
+		return 0;
+	UCHAR *source_ptr, *dest_ptr;
+
+	// 如果是单元格模式，(cx,cy)表示image的index位置cx行，cy列,因此要重新计算起始位置。
+	// 单元格模式，认为iamge左右上下都有1个像素的边
+	if (mode == BITMAP_EXTRACT_MODE_CELL)
+	{
+		// 每个iamge占用的size实际是需要+1的边。
+		cx = cx * (image->width + 1) + 1;
+		cy = cy * (image->height + 1) + 1;
+	}
+
+	source_ptr = bitmap->buffer + cy * bitmap->bitmapInfoHeader.biWidth + cx;
+	dest_ptr = (UCHAR*)image->buffer;
+
+	for (int i = 0; i < image->height; ++i)
+	{
+		memcpy(dest_ptr, source_ptr, image->width);
+
+		dest_ptr += image->width;
+		source_ptr += bitmap->bitmapInfoHeader.biWidth;
+	}
+	image->attr |= BITMAP_ATTR_LOADED;
+	return 1;
+
+}
+
+int Load_Image_Bitmap16(BITMAP_IMAGE_PTR image, BITMAP_FILE_PTR bitmap, int cx, int cy, int mode)
+{
+	if (!image)
+		return 0;
+	USHORT *source_ptr, *dest_ptr;
+	int bytes_per_line = image->width * 2;
+
+	// 如果是单元格模式，(cx,cy)表示image的index位置cx行，cy列,因此要重新计算起始位置。
+	// 单元格模式，认为iamge左右上下都有1个像素的边
+	if (mode == BITMAP_EXTRACT_MODE_CELL)
+	{
+		// 每个iamge占用的size实际是需要+1的边。
+		cx = cx * (image->width + 1) + 1;
+		cy = cy * (image->height + 1) + 1;
+	}
+
+	source_ptr = (USHORT*)bitmap->buffer + cy * bitmap->bitmapInfoHeader.biWidth + cx;
+	dest_ptr = (USHORT*)image->buffer;
+
+	for (int i = 0; i < image->height; ++i)
+	{
+		memcpy(dest_ptr, source_ptr, bytes_per_line);
+
+		dest_ptr += image->width;
+		source_ptr += bitmap->bitmapInfoHeader.biWidth;
+	}
+	image->attr |= BITMAP_ATTR_LOADED;
+	return 1;
+
+}
+
+// 24位位图加载成32位像素
+int Load_Image_Bitmap24(BITMAP_IMAGE_PTR image, BITMAP_FILE_PTR bitmap, int cx, int cy, int mode)
+{
+	if (!image)
+		return 0;
+	UCHAR *source_ptr, *dest_ptr;
+	int bytes_per_line = image->width * 3;
+
+	// 如果是单元格模式，(cx,cy)表示image的index位置cx行，cy列,因此要重新计算起始位置。
+	// 单元格模式，认为iamge左右上下都有1个像素的边
+	if (mode == BITMAP_EXTRACT_MODE_CELL)
+	{
+		// 每个iamge占用的size实际是需要+1的边。
+		cx = cx * (image->width + 1) + 1;
+		cy = cy * (image->height + 1) + 1;
+	}
+
+	source_ptr = (UCHAR*)bitmap->buffer + (cy * bitmap->bitmapInfoHeader.biWidth + cx) * 3;
+	dest_ptr = (UCHAR*)image->buffer;
+
+	for (int i = 0; i < image->height; ++i)
+	{
+		memcpy(dest_ptr, source_ptr, bytes_per_line);
+
+		dest_ptr += image->width * 3;
+		source_ptr += bitmap->bitmapInfoHeader.biWidth * 3;
+	}
+	image->attr |= BITMAP_ATTR_LOADED;
+	return 1;
+
+
+}
+int Draw_Bitmap_Image8(BITMAP_IMAGE_PTR image, UCHAR * dest_buffer, int lpitch, int transparent)
+{
+	if (!(image->attr&BITMAP_ATTR_LOADED))
+	{
+		return 0;
+	}
+	// image的x,y为在dest_buffer中的起点
+
+	int indexi, indexk;
+	UCHAR pixel;
+
+	UCHAR* dest_addr = dest_buffer;
+	UCHAR* src_addr = image->buffer;
+
+	dest_addr += (image->y*lpitch + image->x);
+	if (transparent)		// 不拷贝透明颜色
+	{
+		for (indexi = 0; indexi < image->height; ++indexi)
+		{
+			for (indexk = 0; indexk < image->width; ++indexk)
+			{
+				pixel = src_addr[indexk];
+				if (pixel == 0)
+				{
+					continue;
+				}
+				dest_addr[indexk] = pixel;
+			}
+			dest_addr += lpitch;
+			src_addr += image->width;
+		}
+	}
+	else
+	{
+		for (indexi = 0; indexi < image->height; ++indexi)
+		{
+			memcpy(dest_addr, src_addr, image->width);
+			dest_addr += lpitch;
+			src_addr += image->width;
+		}
+	}
+	return 1;
+}
+
+int Draw_Bitmap_Image16(BITMAP_IMAGE_PTR image, UCHAR * dest_buffer, int lpitch, int transparent)
+{
+	if (!(image->attr&BITMAP_ATTR_LOADED))
+	{
+		return 0;
+	}
+	// image的x,y为在dest_buffer中的起点
+
+	int indexi, indexk;
+	USHORT pixel;
+
+	USHORT* dest_addr = (USHORT*)dest_buffer;
+	USHORT* src_addr = (USHORT*)image->buffer;
+	lpitch = lpitch >> 1;
+
+	dest_addr += (image->y*lpitch + image->x);
+	if (transparent)		// 不拷贝透明颜色
+	{
+		for (indexi = 0; indexi < image->height; ++indexi)
+		{
+			for (indexk = 0; indexk < image->width; ++indexk)
+			{
+				pixel = src_addr[indexk];
+				if (pixel == 0)
+				{
+					continue;
+				}
+				dest_addr[indexk] = pixel;
+			}
+			dest_addr += lpitch;
+			src_addr += image->width;
+		}
+	}
+	else
+	{
+		int src_bytes_per_line = image->width * 2;
+		for (indexi = 0; indexi < image->height; ++indexi)
+		{
+			memcpy(dest_addr, src_addr, src_bytes_per_line);
+			dest_addr += lpitch;
+			src_addr += image->width;
+		}
+	}
+	return 1;
+}
+
+
+int Draw_Bitmap_Image24(BITMAP_IMAGE_PTR image, UCHAR * dest_buffer, int lpitch, int transparent)
+{
+	if (!(image->attr&BITMAP_ATTR_LOADED))
+	{
+		return 0;
+	}
+	// image的x,y为在dest_buffer中的起点
+
+	int indexi, indexk;
+	UINT pixel;
+
+	UINT* dest_addr = (UINT*)dest_buffer;
+	UCHAR* src_addr = (UCHAR*)image->buffer;
+
+	lpitch = lpitch >> 2;
+
+	dest_addr += (image->y*lpitch + image->x);
+	for (indexi = 0; indexi < image->height; ++indexi)
+	{
+		for (indexk = 0; indexk < image->width; ++indexk)
+		{
+			UCHAR b = src_addr[indexk * 3];
+			UCHAR g = src_addr[indexk * 3 + 1];
+			UCHAR r = src_addr[indexk * 3 + 2];
+			pixel = __RGB24BIT(r, g, b);
+			if (transparent&& pixel == 0)
+			{
+				continue;
+			}
+			dest_addr[indexk] = pixel;
+		}
+		dest_addr += lpitch;
+		src_addr += image->width * 3;
+	}
 	return 1;
 }
 
