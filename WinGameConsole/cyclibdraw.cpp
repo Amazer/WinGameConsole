@@ -3068,11 +3068,12 @@ int Scroll_Bitmap(BITMAP_IMAGE_PTR image, int dx, int dy)
 	}
 	BITMAP_IMAGE temp_image;
 
+	int bytesPerPixel = image->bpp >> 3;
+	int bytesPerLine = image->width*bytesPerPixel;
+	// 横向滚动
 	if (dx != 0)
 	{
 		dx %= image->width;
-		int bytePerPixel = image->bpp >> 3;
-		int bytePerLine = image->width*bytePerPixel;
 		if (dx > 0)  // 向右滚动
 		{
 			// 1.将width-dx~width的部分临时存储
@@ -3089,8 +3090,8 @@ int Scroll_Bitmap(BITMAP_IMAGE_PTR image, int dx, int dy)
 
 			for (int i = 0; i < image->height; ++i)
 			{
-				memmove(src_ptr + shift, src_ptr, (image->width - dx)*bytePerPixel);
-				src_ptr += bytePerLine;
+				memmove(src_ptr + shift, src_ptr, (image->width - dx)*bytesPerPixel);
+				src_ptr += bytesPerLine;
 			}
 
 			// 3.将width-dx~width的临时存储部分，放回到imagebuffer的开头
@@ -3106,20 +3107,61 @@ int Scroll_Bitmap(BITMAP_IMAGE_PTR image, int dx, int dy)
 			Copy_Bitmap(&temp_image, 0, 0, image, 0, 0, dx, image->height);
 			// 2.将dx~width的部分移动到内存头部
 			UCHAR *src_buffer = image->buffer;
-			int shift = bytePerPixel * dx;		// 向后的偏移
+			int shift = bytesPerPixel * dx;		// 向后的偏移
 			for (int i = 0; i < image->height; ++i)
 			{
-				memmove(src_buffer, src_buffer + shift, (image->width - dx)*bytePerPixel);
-				src_buffer += bytePerLine;
+				memmove(src_buffer, src_buffer + shift, (image->width - dx)*bytesPerPixel);
+				src_buffer += bytesPerLine;
 			}
 
 			// 3.将0~dx的临时部分拷贝到内存的尾部
 			Copy_Bitmap(image, image->width - dx, 0, &temp_image, 0, 0, dx, image->height);
 		}
-
+		Destroy_Bitmap(&temp_image);
 	}
 
-	Destroy_Bitmap(&temp_image);
+	// 纵向滚动
+	if (dy != 0)
+	{
+		if (dy > 0)		// 向下滚动
+		{
+			dy %= image->height;
+
+			// 1.将向下滚动的部分 height-dy~height的部分临时存储
+			// 2.将0~height-dy部分移动到  dy~height
+			// 3.将height-dy~height的临时存储部分拷贝到0~dy
+
+			Create_Bitmap(&temp_image, 0, 0, image->width, image->height, image->bpp);
+			// 1.
+			Copy_Bitmap(&temp_image, 0, 0, image, 0, 0, image->width, image->height);
+			// 2.
+			Copy_Bitmap(image, 0, dy, &temp_image, 0, 0, image->width, image->height - dy);
+			// 3.
+			Copy_Bitmap(image, 0, 0, &temp_image, 0, image->height-dy, image->width, dy);
+
+		}
+		else //dy<0 向上滚动
+		{
+			dy = -dy;
+			dy %= image->height;
+
+			// 1.将向上滚动的部分 0~dy部分存储
+			// 2.将dy~h部分移动到  0~h-dy
+			// 3.将0~dy的临时存储部分拷贝h-dy~h
+
+			Create_Bitmap(&temp_image, 0, 0, image->width, image->height, image->bpp);
+			// 1.
+			Copy_Bitmap(&temp_image, 0, 0, image, 0, 0, image->width, image->height);
+			// 2.
+			Copy_Bitmap(image, 0, 0, &temp_image, 0, dy, image->width, image->height - dy);
+			// 3.
+			Copy_Bitmap(image, 0, image->height - dy, &temp_image, 0, 0, image->width, dy);
+
+		}
+
+		Destroy_Bitmap(&temp_image);
+
+	}
 
 	return 1;
 
