@@ -365,6 +365,14 @@ int Draw_Bitmap_Image16(BITMAP_IMAGE_PTR image, UCHAR * dest_buffer, int lpitch,
 // 画image到显存或内存。transparent表示是否拷贝透明颜色。1为不拷贝透明颜色
 int Draw_Bitmap_Image24(BITMAP_IMAGE_PTR image, UCHAR * dest_buffer, int lpitch, int transparent);
 
+// 卷动位图
+int Scroll_Bitmap(BITMAP_IMAGE_PTR image, int dx, int dy);
+
+// 拷贝图位图
+int Copy_Bitmap(BITMAP_IMAGE_PTR dest_image, int dest_x, int dest_y,
+	BITMAP_IMAGE_PTR src_image, int src_x, int src_y,
+	int width, int height);
+
 #pragma endregion
 
 #pragma region Draw Text

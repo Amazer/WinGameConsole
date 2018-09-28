@@ -3060,6 +3060,91 @@ int Draw_Bitmap_Image24(BITMAP_IMAGE_PTR image, UCHAR * dest_buffer, int lpitch,
 	return 1;
 }
 
+int Scroll_Bitmap(BITMAP_IMAGE_PTR image, int dx, int dy)
+{
+	if (!image || (dx == 0 && dy == 0))
+	{
+		return 0;
+	}
+	BITMAP_IMAGE temp_image;
+
+	if (dx != 0)
+	{
+		dx %= image->width;
+		int bytePerPixel = image->bpp >> 3;
+		int bytePerLine = image->width*bytePerPixel;
+		if (dx > 0)  // 向右滚动
+		{
+			// 1.将width-dx~width的部分临时存储
+			// 2.将0~width-dx的部分在imagebuffer中移动到内存的结尾
+			// 3.将width-dx~width的临时存储部分，放回到imagebuffer的开头
+
+			// 1.将width-dx~width的部分临时存储
+			Create_Bitmap(&temp_image, 0, 0, dx, image->height, image->bpp);
+			Copy_Bitmap(&temp_image, 0, 0, image, image->height-dx, 0, dx, image->height);
+
+			// 2.将0~width-dx的部分在imagebuffer中移动到内存的结尾
+			UCHAR *src_ptr = image->buffer;
+			int shift = (image->bpp >> 3)*dx;		// 向后的偏移
+
+			for (int i = 0; i < image->height; ++i)
+			{
+				memmove(src_ptr + shift, src_ptr, (image->width - dx)*bytePerPixel);
+				src_ptr += bytePerLine;
+			}
+
+			// 3.将width-dx~width的临时存储部分，放回到imagebuffer的开头
+			Copy_Bitmap(image, 0, 0, &temp_image, 0, 0, dx, image->width);
+
+		}
+		else  // dx<0  向左滚动
+		{
+			dx = -dx;
+
+			// 1.将0~dx的部分临时存储
+			Create_Bitmap(&temp_image, 0, 0, dx, image->height, image->bpp);
+			Copy_Bitmap(&temp_image, 0, 0, image, 0, 0, dx, image->height);
+			// 2.将dx~width的部分移动到内存头部
+			UCHAR *src_buffer = image->buffer;
+			int shift = bytePerPixel * dx;		// 向后的偏移
+			for (int i = 0; i < image->height; ++i)
+			{
+				memmove(src_buffer, src_buffer + shift, (image->width - dx)*bytePerPixel);
+				src_buffer += bytePerLine;
+			}
+
+			// 3.将0~dx的临时部分拷贝到内存的尾部
+			Copy_Bitmap(image, image->width - dx, 0, &temp_image, 0, 0, dx, image->height);
+		}
+
+	}
+
+	Destroy_Bitmap(&temp_image);
+
+	return 1;
+
+}
+int Copy_Bitmap(BITMAP_IMAGE_PTR dest_image, int dest_x, int dest_y,
+	BITMAP_IMAGE_PTR src_image, int src_x, int src_y,
+	int width, int height)
+{
+	if (!dest_image || !src_image)
+	{
+		return 0;
+	}
+	int bytePerPixel = dest_image->bpp >> 3;
+	UCHAR *destBuffer = dest_image->buffer + (dest_x + dest_y * dest_image->width)*bytePerPixel;
+	UCHAR *srcBuffer = src_image->buffer + (src_x + src_y * src_image->width)*bytePerPixel;
+
+	for (int i = 0; i < height; ++i)
+	{
+		memcpy(destBuffer, srcBuffer, bytePerPixel*width);
+		destBuffer += dest_image->width*bytePerPixel;
+		srcBuffer += src_image->width*bytePerPixel;
+	}
+
+	return 1;
+}
 #pragma endregion
 
 #pragma region Draw Text
