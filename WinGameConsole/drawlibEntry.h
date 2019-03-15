@@ -4,8 +4,6 @@ class drawlibEntry :
 	public baseEntry
 {
 public:
-	drawlibEntry();
-	~drawlibEntry();
 	virtual int Init();
 	virtual int Main();
 	virtual int Exit();

@@ -26,7 +26,6 @@ int GameEntry::Game_Init()
 
 	testEntry->Init();
 
-
 	return 0;
 }
 

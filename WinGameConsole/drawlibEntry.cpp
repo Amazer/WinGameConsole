@@ -14,16 +14,6 @@
 #include "drawlibEntry.h"
 
 
-
-drawlibEntry::drawlibEntry()
-{
-}
-
-
-drawlibEntry::~drawlibEntry()
-{
-}
-
 POLYGON2D poly;
 BITMAP_FILE bitmap;
 BITMAP_IMAGE image;
