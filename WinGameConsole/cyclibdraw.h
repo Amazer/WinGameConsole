@@ -84,6 +84,10 @@
 #define MAX(a,b) ((a>b)?a:b)
 #define SWAP(a,b,t) {t=a;a=b;b=t;}
 
+// 设置位标志
+#define SET_BIT(word,bit_flag) ((word)=((word)|(bit_flag)))
+#define RESET_BIT(word,bit_flag) ((word)=((word)&(~bit_flag)))
+
 #endif
 
 

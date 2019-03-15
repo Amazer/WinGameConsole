@@ -123,12 +123,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="cyclibbob.cpp" />
     <ClCompile Include="cyclibdraw.cpp" />
     <ClCompile Include="Debug.cpp" />
     <ClCompile Include="GameEntry.cpp" />
     <ClCompile Include="game_console.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cyclibbob.h" />
     <ClInclude Include="cyclibdraw.h" />
     <ClInclude Include="Debug.h" />
     <ClInclude Include="GameEntry.h" />
