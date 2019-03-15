@@ -30,6 +30,15 @@
     <ClCompile Include="cyclibbob.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="baseEntry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BobEntry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="drawlibEntry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cyclibdraw.h">
@@ -42,6 +51,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cyclibbob.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="baseEntry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BobEntry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="drawlibEntry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
