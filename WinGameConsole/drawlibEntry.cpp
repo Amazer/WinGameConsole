@@ -8,7 +8,6 @@
 
 
 #include "cyclibdraw.h"
-#include "GameEntry.h"
 #include "Debug.h"
 
 #include "drawlibEntry.h"

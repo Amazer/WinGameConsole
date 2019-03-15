@@ -6,8 +6,8 @@ class baseEntry
 public:
 	baseEntry();
 	~baseEntry();
-	virtual int Init();
-	virtual int Main();
-	virtual int Exit();
+	virtual int Init() = 0;
+	virtual int Main() = 0;
+	virtual int Exit() = 0;
 };
 
