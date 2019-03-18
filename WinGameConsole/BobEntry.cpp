@@ -1,24 +1,30 @@
+
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <windowsx.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <ddraw.h>
+#include <math.h>
+
+
+#include "cyclibdraw.h"
+#include "cyclibbob.h"
+#include "Debug.h"
+
 #include "BobEntry.h"
 
-BobEntry::BobEntry()
-{
-}
-
-
-BobEntry::~BobEntry()
-{
-}
-int baseEntry::Init()
+int BobEntry::Init()
 {
 	return 0;
 
 }
-int baseEntry::Main()
+int BobEntry::Main()
 {
 	return 0;
 
 }
-int baseEntry::Exit()
+int BobEntry::Exit()
 {
 	return 0;
 

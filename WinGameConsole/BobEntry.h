@@ -4,7 +4,8 @@ class BobEntry :
 	public baseEntry
 {
 public:
-	BobEntry();
-	~BobEntry();
+	virtual int Init();
+	virtual int Main();
+	virtual int Exit();
 };
 
