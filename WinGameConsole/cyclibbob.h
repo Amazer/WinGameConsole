@@ -77,13 +77,14 @@ typedef struct BOB_TYP
 }BOB,*BOB_PTR;
 
 int Create_BOB(BOB_PTR bob, int x, int y, int width, int height, int num_frames, int attr, 
-	int mem_flags = 0, USHORT color_key_value = 0, int bpp = 32);
+	int mem_flags = 0, USHORT color_key_value = 0);
 int Clone_BOB(BOB_PTR source, BOB_PTR dest);
 
 int Destroy_BOB(BOB_PTR bob);
 
-//多种bpp通用
+// 多种bpp通用
 // 绘制当前帧的image到dest表面
+// 注意，绘制的时候，不能lockSurface,否则不会绘制。(blt的缘故吗)
 int Draw_BOB(BOB_PTR bob, LPDIRECTDRAWSURFACE7 dest);
 //int Draw_BOB16(BOB_PTR bob, LPDIRECTDRAWSURFACE7 dest);
 //int Draw_BOB32(BOB_PTR bob, LPDIRECTDRAWSURFACE7 dest);
@@ -97,8 +98,8 @@ int Draw_Scaled_BOB(BOB_PTR bob, int swidth, int sheight, LPDIRECTDRAWSURFACE7 d
 int Load_Frame_BOB8(BOB_PTR bob, BITMAP_FILE_PTR bitmap, int frame, int cx, int cy, int mode);
 // bob加载某一帧的sprite
 int Load_Frame_BOB16(BOB_PTR bob, BITMAP_FILE_PTR bitmap, int frame, int cx, int cy, int mode);
-// bob加载某一帧的sprite
-int Load_Frame_BOB32(BOB_PTR bob, BITMAP_FILE_PTR bitmap, int frame, int cx, int cy, int mode);
+// bob加载某一帧的sprite,bmp最大是24位的
+int Load_Frame_BOB24(BOB_PTR bob, BITMAP_FILE_PTR bitmap, int frame, int cx, int cy, int mode);
 
 // 播放动画
 // 根据动画类型，切换当前帧curr_frame

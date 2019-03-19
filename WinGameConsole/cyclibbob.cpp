@@ -22,8 +22,7 @@
 //
 
 int Create_BOB(BOB_PTR bob, int x, int y, int width, int height, int num_frames,
-	int attr, int mem_flags /* = 0 */, USHORT color_key_value /* = 0 */,
-	int bpp /* = 32 */)
+	int attr, int mem_flags /* = 0 */, USHORT color_key_value /* = 0 */ )
 {
 
 	DDSURFACEDESC2 ddsd;	// 能力描述
@@ -41,7 +40,7 @@ int Create_BOB(BOB_PTR bob, int x, int y, int width, int height, int num_frames,
 	bob->curr_frame = 0;
 	bob->num_frames = num_frames;
 
-	bob->bpp = bpp;
+	bob->bpp = screen_bpp;
 	bob->curr_animation = 0;
 	bob->anim_counter = 0;
 	bob->anim_index = 0;
@@ -182,6 +181,7 @@ int Draw_BOB(BOB_PTR bob, LPDIRECTDRAWSURFACE7 dest)
 	if (FAILED(dest->Blt(&dest_rect, bob->images[bob->curr_frame],
 		&src_rect, (DDBLT_WAIT | DDBLT_KEYSRC), NULL)))
 	{
+		Write_Error("Draw_BOB  blt failed");
 		return 0;
 	}
 	return 1;
@@ -210,11 +210,86 @@ int Draw_Scaled_BOB(BOB_PTR bob, int swidth, int sheight,
 	src_rect.right = bob->width;
 	src_rect.bottom = bob->height;
 
-	if (FAILED(dest->Blt(&dest_rect, bob->images[bob->curr_frame],
-		&src_rect, (DDBLT_WAIT | DDBLT_KEYSRC), NULL)))
+	HRESULT res = dest->Blt(&dest_rect, bob->images[bob->curr_frame],
+		&src_rect, (DDBLT_WAIT | DDBLT_KEYSRC), NULL);
+	if (FAILED(res))
 	{
+		Write_Error("draw_scaled_bob error res:\n");
+		if (res&DDERR_GENERIC)
+		{
+			Write_Error("DDERR_GENERIC\n");
+		}
+		if (res&DDERR_INVALIDCLIPLIST)
+		{
+			Write_Error("DDERR_INVALIDCLIPLIST\n");
+		}
+		if (res&DDERR_INVALIDOBJECT)
+		{
+			Write_Error("DDERR_INVALIDOBJECT\n");
+		}
+		if (res&DDERR_INVALIDPARAMS)
+		{
+			Write_Error("DDERR_INVALIDPARAMS\n");
+		}
+		if (res&DDERR_NOALPHAHW)
+		{
+			Write_Error("DDERR_NOALPHAHW\n");
+		}
+		if (res&DDERR_NOBLTHW)
+		{
+			Write_Error("DDERR_NOBLTHW\n");
+		}
+		if (res&DDERR_NOCLIPLIST)
+		{
+			Write_Error("DDERR_NOCLIPLIST\n");
+		}
+		if (res&DDERR_NODDROPSHW)
+		{
+			Write_Error("DDERR_NODDROPSHW\n");
+		}
+		if (res&DDERR_NOMIRRORHW)
+		{
+			Write_Error("DDERR_NOMIRRORHW\n");
+		}
+		if (res&DDERR_NORASTEROPHW)
+		{
+			Write_Error("DDERR_NORASTEROPHW\n");
+		}
+		if (res&DDERR_NOROTATIONHW)
+		{
+			Write_Error("DDERR_NOROTATIONHW\n");
+		}
+		if (res&DDERR_NOSTRETCHHW)
+		{
+			Write_Error("DDERR_NOSTRETCHHW\n");
+		}
+		if (res&DDERR_NOSTRETCHHW)
+		{
+			Write_Error("DDERR_NOSTRETCHHW\n");
+		}
+		if (res&DDERR_SURFACEBUSY)
+		{
+			Write_Error("DDERR_SURFACEBUSY\n");
+		}
+		if (res&DDERR_SURFACELOST)
+		{
+			Write_Error("DDERR_SURFACELOST\n");
+		}
+		if (res&DDERR_UNSUPPORTED)
+		{
+			Write_Error("DDERR_UNSUPPORTED\n");
+		}
+		if (res&DDERR_WASSTILLDRAWING)
+		{
+			Write_Error("DDERR_WASSTILLDRAWING\n");
+		}
 		return 0;
 	}
+//	if (FAILED(dest->Blt(&dest_rect, bob->images[bob->curr_frame],
+//		&src_rect, (DDBLT_WAIT | DDBLT_KEYSRC), NULL)))
+//	{
+//		return 0;
+//	}
 	return 1;
 
 }
@@ -259,8 +334,8 @@ int Load_Frame_BOB8(BOB_PTR bob, BITMAP_FILE_PTR bitmap,
 	for (int i = 0; i < bob->height; ++i) 
 	{
 		memcpy(dest_ptr, src_ptr, bob->width);
-		src_ptr += bitmap->bitmapInfoHeader.biWidth;
 		dest_ptr += ddsd.lPitch;
+		src_ptr += bitmap->bitmapInfoHeader.biWidth;
 	}
 
 	(bob->images[frame])->Unlock(NULL);
@@ -307,8 +382,8 @@ int Load_Frame_BOB16(BOB_PTR bob, BITMAP_FILE_PTR bitmap,
 	{
 		// bob->width*2 是因为每个像素用2个字节内存
 		memcpy(dest_ptr, src_ptr, bob->width*2);
-		src_ptr += bitmap->bitmapInfoHeader.biWidth;
 		dest_ptr += (ddsd.lPitch>>1);	// lpitch是字节数。现在每个像素是2个字节。因此内存位置需要总字节数除以2
+		src_ptr += bitmap->bitmapInfoHeader.biWidth;
 	}
 
 	(bob->images[frame])->Unlock(NULL);
@@ -317,7 +392,7 @@ int Load_Frame_BOB16(BOB_PTR bob, BITMAP_FILE_PTR bitmap,
 	return 1;
 }
 
-int Load_Frame_BOB32(BOB_PTR bob, BITMAP_FILE_PTR bitmap,
+int Load_Frame_BOB24(BOB_PTR bob, BITMAP_FILE_PTR bitmap,
 	int frame, int cx, int cy, int mode)
 {
 	// cyc explan:要将bitmap draw 到bob的images中
@@ -336,11 +411,9 @@ int Load_Frame_BOB32(BOB_PTR bob, BITMAP_FILE_PTR bitmap,
 		cy = cy * (bob->height + 1) + 1;
 	}
 
-	// 32位像素，用UINT,4个字节
-	UINT *src_ptr, *dest_ptr;
-
+	UCHAR *src_ptr; 
 	// 第cy行的第cx个sprite的起始位置
-	src_ptr = (UINT *)bitmap->buffer+cy*bitmap->bitmapInfoHeader.biWidth+cx;		// buffer的初始位置
+	src_ptr = (UCHAR *)bitmap->buffer+(cy*bitmap->bitmapInfoHeader.biWidth+cx)*3;		// buffer的初始位置
 
 	ddsd.dwSize = sizeof(ddsd);
 
@@ -349,13 +422,20 @@ int Load_Frame_BOB32(BOB_PTR bob, BITMAP_FILE_PTR bitmap,
 		DDLOCK_WAIT | DDLOCK_SURFACEMEMORYPTR,
 		NULL);
 
-	dest_ptr = (UINT *)ddsd.lpSurface;
+	UINT * dest_ptr = (UINT *)ddsd.lpSurface;
+	UINT pixel = 0;
 	// 进行逐行像素的拷贝
 	for (int i = 0; i < bob->height; ++i) 
 	{
-		// bob->width*4 是因为每个像素用4个字节内存
-		memcpy(dest_ptr, src_ptr, bob->width*4);
-		src_ptr += bitmap->bitmapInfoHeader.biWidth;
+		for (int k = 0; k < bob->width; ++k)
+		{
+			UCHAR b = src_ptr[k * 3];
+			UCHAR g = src_ptr[k * 3+1];
+			UCHAR r = src_ptr[k * 3+2];
+			pixel = __RGB32BIT(1, r, g, b);
+			dest_ptr[k] = pixel;
+		}
+		src_ptr += (bitmap->bitmapInfoHeader.biWidth * 3);
 		// lpitch是字节数。现在每个像素是4个字节。因此内存位置需要总字节数除以4
 		dest_ptr += (ddsd.lPitch>>2);	
 	}
