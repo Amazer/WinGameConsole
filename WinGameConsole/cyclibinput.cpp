@@ -98,12 +98,13 @@ int DInput_Release_Keyboard()
 		lpdikey->Unacquire();
 		lpdikey->Release();
 	}
+	return 1;
 
 }
 
 int DInput_Read_Keyboard()
 {
-	if (lpdikey->GetDeviceData(256, (LPVOID)keybord_state) != DI_OK)
+	if (lpdikey->GetDeviceState(256, (LPVOID)keybord_state) != DI_OK)
 	{
 		return 0;
 	}
