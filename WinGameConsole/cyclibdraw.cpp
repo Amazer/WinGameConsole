@@ -30,8 +30,6 @@ FILE *fp_error = NULL;
 // 错误文件名称
 char error_filename[80];
 
-extern HWND main_window_handle;
-extern HINSTANCE main_instance;
 
 // 全局变量初始化
 float cos_look[361];

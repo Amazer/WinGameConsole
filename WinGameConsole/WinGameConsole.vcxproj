@@ -91,7 +91,7 @@
       <AdditionalOptions>/wd4430 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ddraw.lib;dxguid.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ddraw.lib;dinput8.lib;dxguid.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -127,6 +127,7 @@
     <ClCompile Include="BobEntry.cpp" />
     <ClCompile Include="cyclibbob.cpp" />
     <ClCompile Include="cyclibdraw.cpp" />
+    <ClCompile Include="cyclibinput.cpp" />
     <ClCompile Include="Debug.cpp" />
     <ClCompile Include="drawlibEntry.cpp" />
     <ClCompile Include="GameEntry.cpp" />
@@ -137,6 +138,7 @@
     <ClInclude Include="BobEntry.h" />
     <ClInclude Include="cyclibbob.h" />
     <ClInclude Include="cyclibdraw.h" />
+    <ClInclude Include="cyclibinput.h" />
     <ClInclude Include="Debug.h" />
     <ClInclude Include="drawlibEntry.h" />
     <ClInclude Include="GameEntry.h" />

@@ -90,6 +90,8 @@
 
 #endif
 
+extern HWND main_window_handle ;
+extern HINSTANCE main_instance ;
 
 #pragma region 基本类型
 typedef unsigned char BYTE;			// 1个字节
