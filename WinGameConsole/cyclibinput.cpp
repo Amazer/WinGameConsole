@@ -116,3 +116,67 @@ int DInput_Read_Keyboard()
 	return 1;
 }
 
+int DInput_Init_Mouse()
+{
+	if (lpdi->CreateDevice(GUID_SysMouse, &lpdimouse, NULL) != DI_OK)
+	{
+		return 0;
+	}
+	if (lpdimouse->SetCooperativeLevel(_main_window_handle,
+		DISCL_NONEXCLUSIVE | DISCL_BACKGROUND) != DI_OK)
+	{
+		return 0;
+	}
+
+	if (lpdimouse->SetDataFormat(&c_dfDIMouse) != DI_OK)
+	{
+		return 0;
+	}
+	if (lpdimouse->Acquire() != DI_OK)
+	{
+		return 0;
+	}
+	return 1;
+}
+
+int DInput_Read_Mouse()
+{
+	if (lpdimouse)
+	{
+		if(lpdimouse->GetDeviceState(sizeof(DIMOUSESTATE)
+			,(LPVOID)&mouse_state)!=DI_OK)
+		{
+			return 0;
+		}
+		return 1;
+	}
+	else
+	{
+		memset(&mouse_state, 0, sizeof(mouse_state));
+		return 0;
+	}
+	return 1;
+}
+int DInput_Release_Mouse()
+{
+	if (lpdimouse)
+	{
+		lpdimouse->Unacquire();
+		lpdimouse->Release();
+	}
+}
+
+
+int DInput_Init_Joystick(int min_x /* = -256 */, int max_x /* = 256 */, int min_y /* = -256 */, int max_y /* = 256 */)
+{
+
+}
+int DInput_Read_Jyostick()
+{
+
+}
+int DInput_Release_Joystick()
+{
+
+}
+
