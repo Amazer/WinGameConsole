@@ -3273,31 +3273,46 @@ int DebugPrintF(const char * format, ...)
 }
 
 POLYGON2D fillPoly;
+
+POLYGON2D triPoly;
 void Test_FillPolygon_Init()
 {
-	fillPoly.color = 255;
-	fillPoly.state = 1;
-	fillPoly.x0 = 200;
-	fillPoly.y0 = 200;
-
-	fillPoly.num_verts = 4;
-	fillPoly.vlist = new VERTEX2DF[4];
-	fillPoly.vlist[0].x = -50;
-	fillPoly.vlist[0].y = -50;
-
-	fillPoly.vlist[1].x = 101;
-	fillPoly.vlist[1].y = -50;
-
-	fillPoly.vlist[2].x = 101;
-	fillPoly.vlist[2].y = 101;
-
-	fillPoly.vlist[3].x = -50;
-	fillPoly.vlist[3].y = 101;
+//	fillPoly.color = 255;
+//	fillPoly.state = 1;
+//	fillPoly.x0 = 200;
+//	fillPoly.y0 = 200;
+//
+//	fillPoly.num_verts = 4;
+//	fillPoly.vlist = new VERTEX2DF[4];
+//	fillPoly.vlist[0].x = -50;
+//	fillPoly.vlist[0].y = -50;
+//
+//	fillPoly.vlist[1].x = 101;
+//	fillPoly.vlist[1].y = -50;
+//
+//	fillPoly.vlist[2].x = 101;
+//	fillPoly.vlist[2].y = 101;
+//
+//	fillPoly.vlist[3].x = -50;
+//	fillPoly.vlist[3].y = 101;
 
 	//	Rotate_Polygon2d_Mat(&fillPoly, 2);
 
 	//	fillPoly.num_verts = 11;
 	//	fillPoly.vlist = ship_vertexs;
+	triPoly.state = 1;
+	triPoly.color = 255;
+	triPoly.num_verts = 3;
+	triPoly.x0 = 400;
+	triPoly.y0 = 400;
+	triPoly.vlist = new VERTEX2DF[3];
+	triPoly.vlist[0].x = 0;
+	triPoly.vlist[0].y = 0;
+	triPoly.vlist[1].x = 100;
+	triPoly.vlist[1].y = 0;
+
+	triPoly.vlist[2].x = 100;
+	triPoly.vlist[2].y = 100;
 
 }
 void Test_FillPolygon_Main()
@@ -3307,13 +3322,15 @@ void Test_FillPolygon_Main()
 	DDRAW_INIT_STRUCT(ddsd);
 	lpddsback->Lock(NULL, &ddsd, DDLOCK_WAIT | DDLOCK_SURFACEMEMORYPTR, NULL);
 
-	fillPoly.color = 255;
-	Draw_Filled_Polygon2D(&default_clip_rect, &fillPoly, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+//	fillPoly.color = 255;
+//	Draw_Filled_Polygon2D(&default_clip_rect, &triPoly, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+//
+//	fillPoly.color = 220;
+//	Draw_Polygon2D(default_clip_rect, &triPoly, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
+//
+//	Rotate_Polygon2d_Mat(&triPoly, 1);
 
-	fillPoly.color = 220;
-	Draw_Polygon2D(default_clip_rect, &fillPoly, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
-
-	Rotate_Polygon2d_Mat(&fillPoly, 1);
+	Draw_TriangleFP_2D(&default_clip_rect, 100, 100, 200, 150, 200, 200, 255, (UCHAR*)ddsd.lpSurface, ddsd.lPitch);
 
 	lpddsback->Unlock(NULL);
 
