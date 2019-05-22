@@ -168,7 +168,7 @@ int DInput_Release_Mouse()
 }
 
 
-int DInput_Init_Joystick(int min_x /* = -256 */, int max_x /* = 256 */, int min_y /* = -256 */, int max_y /* = 256 */, int dead_zone)
+int DInput_Init_Joystick(int min_x /* = -256 */, int max_x /* = 256 */, int min_y /* = -256 */, int max_y /* = 256 */, int dead_zone/* = 1*/)
 {
 	lpdi->EnumDevices(DI8DEVCLASS_GAMECTRL,
 		DInput_Enum_Joysticks,	// call back
