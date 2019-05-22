@@ -37,11 +37,11 @@ LPDIRECTINPUTDEVICE8 lpdijoy = NULL;
 
 GUID joystickGUID;
 char joyname[80];
+int joystick_found = 0;
 
 UCHAR keybord_state[256];
 DIMOUSESTATE mouse_state;
 DIJOYSTATE joy_state;
-int joystick_found = 0;
 
 
 int DInput_Init(HINSTANCE mainInstance, HWND mainWindowHandle)
@@ -143,8 +143,8 @@ int DInput_Read_Mouse()
 {
 	if (lpdimouse)
 	{
-		if(lpdimouse->GetDeviceState(sizeof(DIMOUSESTATE)
-			,(LPVOID)&mouse_state)!=DI_OK)
+		if (lpdimouse->GetDeviceState(sizeof(DIMOUSESTATE)
+			, (LPVOID)&mouse_state) != DI_OK)
 		{
 			return 0;
 		}
@@ -164,19 +164,122 @@ int DInput_Release_Mouse()
 		lpdimouse->Unacquire();
 		lpdimouse->Release();
 	}
+	return 1;
 }
 
 
-int DInput_Init_Joystick(int min_x /* = -256 */, int max_x /* = 256 */, int min_y /* = -256 */, int max_y /* = 256 */)
+int DInput_Init_Joystick(int min_x /* = -256 */, int max_x /* = 256 */, int min_y /* = -256 */, int max_y /* = 256 */, int dead_zone)
 {
+	lpdi->EnumDevices(DI8DEVCLASS_GAMECTRL,
+		DInput_Enum_Joysticks,	// call back
+		&joystickGUID,
+		DIEDFL_ATTACHEDONLY);	// 只检测连接上的设备
 
+	LPDIRECTINPUTDEVICE lpdijoy_temp = NULL;
+	if (lpdi->CreateDevice(joystickGUID, &lpdijoy, NULL) != DI_OK)
+	{
+		return 0;
+	}
+	if (lpdijoy->SetCooperativeLevel(_main_window_handle,
+		DISCL_NONEXCLUSIVE | DISCL_BACKGROUND) != DI_OK)
+	{
+		return 0;
+	}
+
+	// 设置joystick的属性
+	// 设置范围
+
+	DIPROPRANGE joy_axis_range;
+
+	joy_axis_range.lMin = min_x;
+	joy_axis_range.lMax = max_x;
+
+	joy_axis_range.diph.dwSize = sizeof(DIPROPRANGE);
+	joy_axis_range.diph.dwHeaderSize = sizeof(DIPROPHEADER);
+	joy_axis_range.diph.dwObj = DIJOFS_X;
+	joy_axis_range.diph.dwHow = DIPH_BYOFFSET;
+
+	lpdijoy->SetProperty(DIPROP_RANGE, &joy_axis_range.diph);
+
+	// 设置y-axis
+	joy_axis_range.lMin = min_y;
+	joy_axis_range.lMax = max_y;
+
+	joy_axis_range.diph.dwSize = sizeof(DIPROPRANGE);
+	joy_axis_range.diph.dwHeaderSize = sizeof(DIPROPHEADER);
+	joy_axis_range.diph.dwObj = DIJOFS_Y;
+	joy_axis_range.diph.dwHow = DIPH_BYOFFSET;
+
+	lpdijoy->SetProperty(DIPROP_RANGE, &joy_axis_range.diph);
+
+	// 设置死区.范围永远是0-10000。设置为100.
+	DIPROPDWORD dead_band;
+	dead_zone *= 100;
+
+	dead_band.diph.dwSize = sizeof(dead_band);
+	dead_band.diph.dwHeaderSize = sizeof(dead_band.diph);
+	dead_band.diph.dwObj = DIJOFS_X;
+	dead_band.diph.dwHow = DIPH_BYOFFSET;
+
+	dead_band.dwData = dead_zone;
+
+	lpdijoy->SetProperty(DIPROP_DEADZONE, &dead_band.diph);
+
+
+	dead_band.diph.dwSize = sizeof(dead_band);
+	dead_band.diph.dwHeaderSize = sizeof(dead_band.diph);
+	dead_band.diph.dwObj = DIJOFS_Y;
+	dead_band.diph.dwHow = DIPH_BYOFFSET;
+
+	dead_band.dwData = dead_zone;
+
+	lpdijoy->SetProperty(DIPROP_DEADZONE, &dead_band.diph);
+
+	if (lpdijoy->Acquire() != DI_OK)
+	{
+		return 0;
+	}
+
+	joystick_found = 1;
+
+	return 1;
+}
+BOOL CALLBACK DInput_Enum_Joysticks(LPCDIDEVICEINSTANCE lpddi, LPVOID guid_ptr)
+{
+	*(GUID*)guid_ptr = lpddi->guidInstance;
+	strcpy(joyname, (char*)lpddi->tszProductName);
+	return DIENUM_STOP;	// 只读取一个就返回
 }
 int DInput_Read_Jyostick()
 {
-
+	if (!joystick_found)
+	{
+		return 0;
+	}
+	if (lpdijoy)
+	{
+		if (lpdijoy->Poll() != DI_OK)
+		{
+			return 0;
+		}
+		if (lpdijoy->GetDeviceState(sizeof(DIJOYSTATE), (LPVOID)&joy_state) != DI_OK)
+		{
+			return 0;
+		}
+	}
+	else
+	{
+		memset(&joy_state, 0, sizeof(joy_state));
+		return 0;
+	}
+	return 1;
 }
 int DInput_Release_Joystick()
 {
-
+	if (lpdijoy)
+	{
+		lpdijoy->Unacquire();
+		lpdijoy->Release();
+	}
 }
 

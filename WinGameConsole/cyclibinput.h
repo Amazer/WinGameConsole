@@ -18,7 +18,7 @@ extern int joystick_found;
 int DInput_Init(HINSTANCE mainInstance,HWND mainWindowHandle);
 void DInput_Shutdown(void);
 
-int DInput_Init_Joystick(int min_x = -256, int max_x = 256, int min_y = -256, int max_y = 256);
+int DInput_Init_Joystick(int min_x = -256, int max_x = 256, int min_y = -256, int max_y = 256,int dead_zone=1);
 int DInput_Init_Mouse(void);
 int DInput_Init_Keyboard(void);
 
