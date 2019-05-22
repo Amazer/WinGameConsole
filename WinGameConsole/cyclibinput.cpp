@@ -281,5 +281,6 @@ int DInput_Release_Joystick()
 		lpdijoy->Unacquire();
 		lpdijoy->Release();
 	}
+	lpdijoy = NULL;
 }
 
